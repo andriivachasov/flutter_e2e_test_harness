@@ -26,8 +26,9 @@ What it does (all idempotent, safe to re-run):
 | Platform | Change |
 |---|---|
 | pubspec | adds the `patrol:` section (`app_name`, `android.package_name`, `ios.bundle_id`, read from the native projects) and `flutter.config.enable-swift-package-manager: false` (Patrol's iOS setup is CocoaPods-based) |
-| Android | `testInstrumentationRunner = "pl.leancode.patrol.PatrolJUnitRunner"`, `clearPackageData`, `ANDROIDX_TEST_ORCHESTRATOR` + `androidx.test:orchestrator` in `android/app/build.gradle(.kts)`; `MainActivityTest.java` in the app's package under `androidTest/` |
-| iOS | `ios/RunnerUITests/RunnerUITests.m`, a `RunnerUITests` UI-test target added to `Runner.xcodeproj` and to the shared `Runner` scheme's test action (via the `xcodeproj` gem, installed if missing), the `RunnerUITests` block in `ios/Podfile`, `pod install` |
+| Android | `testInstrumentationRunner = "pl.leancode.patrol.PatrolJUnitRunner"`, `clearPackageData`, `ANDROIDX_TEST_ORCHESTRATOR` + `androidx.test:orchestrator` in `android/app/build.gradle(.kts)`; `MainActivityTest.java` in the app's package under `androidTest/`, **only if no entry point is there yet** |
+| iOS | `ios/RunnerUITests/RunnerUITests.m` (**only if no entry point is there yet**), a `RunnerUITests` UI-test target added to `Runner.xcodeproj` and to the shared `Runner` scheme's test action (via the `xcodeproj` gem, installed if missing), the `RunnerUITests` block in `ios/Podfile`, `pod install` |
+| iOS | removes any leftover **local Patrol Swift package** from `Runner.xcodeproj` (see below); prints `xcodeproj: skipped (nothing to clean)` when there is none |
 
 Preconditions: `android/` and `ios/` exist (`flutter create --platforms
 ios,android .` in the app dir if not), CocoaPods installed (iOS).
@@ -41,8 +42,31 @@ ios,android .` in the app dir if not), CocoaPods installed (iOS).
 - If the iOS project was created with Swift Package Manager, the script
   runs a config-only build to regenerate the Podfile; if `ios/` contains
   hand-written changes, review the diff.
+- **Patrol wired as a local Swift package.** Disabling SPM stops Flutter
+  generating `ios/Flutter/ephemeral/Packages/.packages/patrol-<version>/`,
+  so a project that previously wired Patrol through SPM points
+  `Runner.xcodeproj` at a path that no longer exists and `xcodebuild` dies
+  *before building anything*: `Could not resolve package dependencies: the
+  package at '…/patrol-4.8.0' cannot be accessed`. The bootstrap's
+  `ios: stale SwiftPM patrol package` step removes the
+  `XCLocalSwiftPackageReference`, its `XCSwiftPackageProductDependency` and
+  the `Frameworks` entry (idempotent; unrelated packages are left alone).
+  Run it alone with
+  `cd <app dir>/ios && ruby <harness>/tools/ios_spm_cleanup.rb`.
+  `e2e doctor` warns when SPM is disabled and the pbxproj still references
+  a patrol Swift package.
 - `MainActivityTest.java` must live under the *applicationId* package path
   (the script derives it from gradle).
+- **Existing native entry points are never overwritten.** Both are detected
+  by content, not by filename: `PatrolJUnitRunner` anywhere under
+  `android/app/src/androidTest/`, and `PATROL_INTEGRATION_TEST_IOS_RUNNER`/
+  `MODULE` or a `RunnerUITests` class anywhere under `ios/RunnerUITests/`.
+  A Kotlin `MainActivityTest.kt` or Swift `RunnerUITests.swift` therefore
+  stops the step (it prints `skipped (exists): <file>`) instead of getting
+  a duplicate `.java`/`.m` sibling — which on Android would fail every
+  build with a redeclaration error. Comments you add to those files
+  survive re-runs; if you need the harness's version back, delete yours
+  and re-run.
 - `pod install` prints "CocoaPods did not set the base configuration of
   your project … Profile" on Flutter projects: harmless, the Flutter
   xcconfigs already `#include?` the Pods files.

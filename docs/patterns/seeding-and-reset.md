@@ -26,6 +26,12 @@
 The harness posts it as `{"email","profile","data"}`; the backend
 interprets `data`. Document the format in `seeds/README.md`.
 
+These endpoints delete arbitrary user data and cannot be authenticated
+(they must work before the account exists), so `E2E_TEST_MODE` is only an
+enable flag: lock the surface by binding the test backend to loopback and
+refusing non-loopback callers — see
+[playbook 03 §3.2](../playbook/03-backend-contract.md).
+
 **Manifest.**
 
 ```yaml

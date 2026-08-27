@@ -19,6 +19,15 @@ The first log line of a run is `run <id> (seq N) → <run dir>`; the last
 ones are `summary: <dir>/summary.html` and `result: X/Y passed, exit N` —
 parse those rather than guessing directory names.
 
+`e2e doctor` also fails on missing Firebase app config files: when the
+Android build applies the `google-services` plugin it requires
+`android/app/google-services.json`, and on macOS, when the xcodeproj
+references it, `ios/Runner/GoogleService-Info.plist`. Both are gitignored
+in most Flutter repos, so a fresh clone or worktree has neither — fix with
+`flutterfire configure` in the app directory, or copy them from another
+checkout. Skipping this costs a full build before Gradle fails at
+`:app:processDebugGoogleServices`.
+
 `e2e doctor`'s "no leftover harness processes" check lists backend,
 `patrol test`, recorder, emulator and orchestrator processes — orphans
 from an interrupted run *or* a run active in another shell. Devices are

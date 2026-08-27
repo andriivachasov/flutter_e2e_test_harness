@@ -34,6 +34,11 @@ devices:
 backend:
   dir: example/backend
   command: ["dart", "run", "bin/server.dart"]
+  # How the run's port is passed to that command. A string or a list of
+  # strings; every "{port}" is substituted, and at least one must be present.
+  #   ["--port", "{port}"]   (default)   "--server.port={port}"  Spring Boot
+  #   ["-p", "{port}"]       Rails       "127.0.0.1:{port}"      Django
+  port_flag: ["--port", "{port}"]
   health_path: /health
   start_timeout_seconds: 60
   # Test-only endpoints (enabled by E2E_TEST_MODE=1, which the harness sets):

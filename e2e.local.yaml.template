@@ -52,6 +52,32 @@
 # against one real project share the pool — one run per project at a time.
 
 # ---------------------------------------------------------------------------
+# Shared secret for the /test/* surface (optional, issue #7)
+# ---------------------------------------------------------------------------
+# The test-only endpoints delete arbitrary user data and must work before an
+# account exists, so they cannot be authenticated: E2E_TEST_MODE=1 only
+# ENABLES them. The recommended lock is to bind the test backend to loopback
+# and reject non-loopback callers (docs/playbook/03-backend-contract.md
+# §3.2) — no secret to leak or rotate.
+#
+# If your backend cannot bind to loopback (a container, a shared host), or
+# you want a second factor anyway, the orchestrator can send a header with
+# every /test/* request; the backend rejects requests without it. Unset by
+# default. The VALUE IS A SECRET — that is why it lives here. The harness
+# never writes it: summary.json, doctor and the config-source lines carry
+# the header name and <set>, test.log is scrubbed, and a failed /test/*
+# response body is scrubbed before it is reported.
+#
+# backend:
+#   test_header:
+#     name: X-E2E-Test-Secret
+#     value: a-long-random-string
+#
+# Several headers instead of one: list them as `<name>: <value>` directly
+# under `test_header`. Env equivalents (CI, nothing on disk):
+# E2E_BACKEND_TEST_HEADER, E2E_BACKEND_TEST_HEADER_VALUE.
+
+# ---------------------------------------------------------------------------
 # Machine-specific device overrides (optional)
 # ---------------------------------------------------------------------------
 # Handy when your simulator/AVD names differ from the committed defaults.

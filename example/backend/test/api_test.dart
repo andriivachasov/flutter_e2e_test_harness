@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:e2e_example_backend/api.dart';
+import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
 
@@ -177,5 +178,27 @@ void main() {
     } finally {
       await prod.close(force: true);
     }
+  });
+
+  test('test endpoints are loopback-only, failing closed (issue #7)',
+      () async {
+    // Called through the handler directly, there is no connection info at
+    // all — the filter must refuse, not assume.
+    final handler = buildHandler(
+      ApiState(),
+      testMode: true,
+      verifyToken: fakeVerify,
+    );
+    final res = await handler(
+      Request('POST', Uri.parse('http://localhost/test/reset')),
+    );
+    expect(res.statusCode, 403);
+    expect(jsonDecode(await res.readAsString()),
+        {'error': 'test endpoints are loopback-only'});
+
+    // The rest of the API is untouched by the filter.
+    final health =
+        await handler(Request('GET', Uri.parse('http://localhost/health')));
+    expect(health.statusCode, 200);
   });
 }

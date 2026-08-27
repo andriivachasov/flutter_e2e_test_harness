@@ -32,10 +32,28 @@ if [ -n "$APP" ]; then
   grep -qE '^\s+e2e_test_support:' "$APP/pubspec.yaml" && ok "app depends on e2e_test_support" || bad "app pubspec lacks e2e_test_support (path: harness/test_support)"
   grep -qE '^patrol:' "$APP/pubspec.yaml" && ok "pubspec has patrol: section" || bad "pubspec lacks patrol: section (bootstrap tool adds it)"
   grep -q PatrolJUnitRunner "$APP"/android/app/build.gradle* 2>/dev/null && ok "android gradle configured for Patrol" || bad "android gradle lacks PatrolJUnitRunner"
-  ls "$APP"/android/app/src/androidTest/java/*/*/*/MainActivityTest.java >/dev/null 2>&1 && ok "MainActivityTest.java present" || bad "MainActivityTest.java missing"
-  [ -f "$APP/ios/RunnerUITests/RunnerUITests.m" ] && ok "iOS RunnerUITests.m present" || bad "iOS RunnerUITests.m missing"
+  grep -rq PatrolJUnitRunner "$APP/android/app/src/androidTest" 2>/dev/null && ok "android test entry point present (.java or .kt)" || bad "no androidTest entry point using PatrolJUnitRunner"
+  grep -rqE 'PATROL_INTEGRATION_TEST_IOS_(RUNNER|MODULE)' "$APP/ios/RunnerUITests" 2>/dev/null && ok "iOS RunnerUITests entry point present (.m or .swift)" || bad "iOS RunnerUITests entry point missing"
   grep -q RunnerUITests "$APP/ios/Runner.xcodeproj/project.pbxproj" 2>/dev/null && ok "iOS RunnerUITests target in xcodeproj" || bad "iOS xcodeproj lacks RunnerUITests target"
   grep -q "RunnerUITests" "$APP/ios/Podfile" 2>/dev/null && ok "Podfile has RunnerUITests block" || bad "Podfile lacks RunnerUITests block"
+  # Gitignored in most Flutter repos: a fresh clone/worktree builds for
+  # minutes and then dies at :app:processDebugGoogleServices.
+  # Flavored apps keep these outside the canonical path (android/app/src/<flavor>/,
+  # a per-flavor iOS directory copied in by a build phase), so search the tree.
+  found_anywhere() { # <root> <filename>
+    [ -d "$1" ] && find "$1" -name "$2" \
+      -not -path '*/Pods/*' -not -path '*/build/*' \
+      -not -path '*/.symlinks/*' -not -path '*/ephemeral/*' \
+      -print -quit 2>/dev/null | grep -q .
+  }
+  if grep -rqE "google-services" "$APP"/android/app/build.gradle* "$APP"/android/build.gradle* "$APP"/android/settings.gradle* 2>/dev/null; then
+    found_anywhere "$APP/android/app/src" "google-services.json" && ok "google-services.json present" \
+      || bad "google-services.json missing (gitignored in most repos: flutterfire configure, or copy it from another checkout)"
+  fi
+  if [ "$(uname)" = Darwin ] && grep -q "GoogleService-Info.plist" "$APP/ios/Runner.xcodeproj/project.pbxproj" 2>/dev/null; then
+    found_anywhere "$APP/ios" "GoogleService-Info.plist" && ok "GoogleService-Info.plist present" \
+      || bad "GoogleService-Info.plist missing (gitignored in most repos: flutterfire configure, or copy it from another checkout)"
+  fi
   grep -rqE "E2E_BACKEND_URL|TestContext" "$APP/lib" 2>/dev/null && ok "app reads its e2e configuration from dart-defines" || bad "app lib/ never reads E2E_* dart-defines"
   grep -rq "X-E2E-Test-Id" "$APP/lib" 2>/dev/null && ok "app sends X-E2E-Test-Id (log correlation)" || bad "app never sends X-E2E-Test-Id"
   grep -rqE "Key\('|ValueKey\(|Semantics\(" "$APP/lib" 2>/dev/null && ok "app uses stable widget keys" || bad "no widget keys found in app lib/"

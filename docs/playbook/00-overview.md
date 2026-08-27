@@ -24,7 +24,8 @@ Write the answers down; later steps branch on them.
 
 1. **Does the app talk to a backend you can run locally?**
    - *Yes, and it is HTTP+JSON* → step 03: add the test-only endpoints and
-     accept `--port`; the harness starts it per run.
+     accept a port argument (`backend.port_flag`, `--port <n>` by default);
+     the harness starts it per run.
    - *Yes, but it is not runnable locally (hosted staging only)* → set
      `backend.command: []` (harness starts nothing) and point the app at
      staging via its own config; seeding and account resets through the
@@ -57,8 +58,14 @@ happens depends on what the existing suite is built on:
   `harness/tools/patrol_bootstrap.sh` (step 05) is idempotent: it checks
   for an existing `patrol:` pubspec section, `PatrolJUnitRunner`, the iOS
   `RunnerUITests` target, etc. before writing anything, so it won't
-  clobber a prior Patrol setup. Existing `patrolTest` files can keep
-  running standalone (`patrol test`) while you migrate.
+  clobber a prior Patrol setup. The two native entry points are detected
+  by *content*, not filename — `PatrolJUnitRunner` anywhere under
+  `androidTest/` and a Patrol UI-test bootstrap anywhere under
+  `ios/RunnerUITests/` — so a hand-written Kotlin `MainActivityTest.kt`
+  or Swift `RunnerUITests.swift` is left alone (the step prints
+  `skipped (exists)`); it never gets an extra `.java`/`.m` sibling, and
+  the comments in it survive re-runs. Existing `patrolTest` files can
+  keep running standalone (`patrol test`) while you migrate.
 - **A different framework** (Appium, Maestro, `flutter_driver`, native
   XCUITest/Espresso driven separately) → expect friction at the native
   layer. The harness wants to own the Gradle test runner and the Xcode

@@ -13,7 +13,8 @@ M5 (playbook, R22/R23): `docs/` — `README.md`, `playbook/00…08`,
 `docs/decisions/regen.py` — edit the table there, regenerate here),
 `troubleshooting.md`. Tools: `harness/tools/patrol_bootstrap.sh <app>`
 (Patrol native setup for any app) and `harness/tools/check_integration.sh`
-(29 machine-checkable criteria). Harness gained `firebase.mode: none` and
+(30 machine-checkable criteria, plus 2 that fire only when the app's build
+consumes the Firebase config files). Harness gained `firebase.mode: none` and
 `backend.command: []` (D21).
 
 M5 DoD (D22) PASSED on 2026-08-26: a fresh agent given only `docs/`
@@ -150,9 +151,10 @@ inside `patrol test`, so install is not separable without prebuild).
 The harness is semver-versioned in `harness/VERSION` (inside the vendored
 tree, so an integrated app carries its version; **absent == 1.0.0**), with
 one `CHANGELOG.md` section per version, each carrying a **Migration**
-subsection written even when it is empty. Current version: **1.1.1**
+subsection written even when it is empty. Current version: **1.2.2**
 (1.0.0 = baseline, everything through M5; 1.1.0 = fail-fast across roles;
-1.1.1 = README update prompt). `main` and `dev` are both at 1.1.1.
+1.1.1 = README update prompt; 1.2.0 = field-report fixes #1/#2/#3/#4/#7; 1.2.1, 1.2.2 = review fixes to 1.2.0).
+`dev` is at 1.2.2; `main` is at 1.1.1.
 
 - Work lands on `dev`: every change bumps `VERSION`, adds its changelog
   section **in the same commit**, and is tagged `v<version>`.
@@ -164,9 +166,16 @@ subsection written even when it is empty. Current version: **1.1.1**
   `docs/playbook/09-upgrading.md`.
 
 Field-report findings from a real integration (JVM backend, existing Patrol
-suite, worktrees) are filed as issues #1–#12 on the GitHub repo; #1, #2, #3
-and #7 are the high-severity ones and are NOT fixed yet. #12 (fail-fast) is
-done in 1.1.0; #10's `--keep-all` item is done.
+suite, worktrees) are filed as issues #1–#12 on the GitHub repo. Fixed in
+1.2.0: #1 (bootstrap clobbering native entry points), #2 (stale Patrol
+SwiftPM refs), #3 (doctor checks google-services.json /
+GoogleService-Info.plist), #4 (`backend.port_flag`), #7 (`/test/*` is
+loopback-only; `backend.test_header` as an optional shared secret). #12
+(fail-fast) is done in 1.1.0; #10's `--keep-all` item is done. Still open:
+#5, #6, #8, #9, #10 (rest), #11, and #14 (concurrent roles race on shared
+Flutter build state — filed 2026-08-27 from a kynt/relcoach run; the
+suggested fix is to serialize the native build phase, which overlaps the
+`executor.prebuild` backlog item).
 
 ## Local config (added for M3, simplified by D23)
 

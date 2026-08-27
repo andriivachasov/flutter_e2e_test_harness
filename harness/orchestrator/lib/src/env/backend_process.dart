@@ -28,7 +28,9 @@ class BackendProcess {
     required File logFile,
     Map<String, String> environment = const {},
   }) async {
-    final command = [...config.backendCommand, '--port', '$port'];
+    // How the port reaches the backend is configurable (`backend.port_flag`,
+    // default `["--port", "{port}"]`): not every server takes `--port <n>`.
+    final command = [...config.backendCommand, ...config.backendPortArgs(port)];
     final proc = await ManagedProcess.start(
       'backend',
       command,

@@ -449,6 +449,11 @@ class Runner {
             'mode': 'pool',
             'emailDomain': config.provisioner.emailDomain,
           },
+          // Names only, values as presence flags (issue #7). Omitted when
+          // unset, so summaries of setups without a shared secret keep
+          // exactly the shape they had.
+          if (config.backendTestHeaders.isNotEmpty)
+            'backendTestHeaders': config.backendTestHeaders.toRedactedJson(),
           'resetAppData': config.resetAppData,
           'quarantineTag': config.quarantineTag,
         },
