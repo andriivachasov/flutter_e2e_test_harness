@@ -14,6 +14,11 @@ dependencies:
 
 dev_dependencies:
   test: ^1.25.0
+  # Test-only: lets the sync-server tests drive the real SyncClient, so the
+  # two halves of the wire contract are verified against each other rather
+  # than against a mock. test_support itself stays dependency-free.
+  e2e_test_support:
+    path: ../test_support
 
 executables:
   e2e: e2e

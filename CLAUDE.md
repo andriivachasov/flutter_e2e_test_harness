@@ -93,8 +93,9 @@ sign-out → sign-in asserted via the app's `auth_mode_*` banner),
 (`launchApp`/`continueAs`/`signOut`, `addNote`/`expectNotes`,
 `openChat`/`sendMessage`/`waitForMessage`). Seed profiles: `example/seeds/<name>.json` (format is
 the backend's contract, see its README). Test bodies are wrapped in
-`sync.guard(...)` (failure screenshot + failure report) and mark module
-boundaries with `sync.step('name')` — that is where step timings (R15) and
+`sync.guard(...)` (failure report + failure screenshot, in that order — the
+report releases partner roles and the screenshot can take tens of seconds)
+and mark module boundaries with `sync.step('name')` — that is where step timings (R15) and
 the failing step for clustering (R14) come from. Tests tagged `quarantine`
 run and are reported but never fail the run (D19); `flaky_demo` is the
 quarantined fixture.
@@ -107,6 +108,17 @@ firebase/provisioner config, run `seq`), `backend.log` (+ per-test slice keyed b
 `video.mp4`, `app.log`, `test.log`, `screenshots/`. Tests request
 screenshots with `sync.screenshot('label')`, seeding with
 `sync.seed('profile')`, account resets with `sync.resetAccount()`.
+
+Fail-fast across roles (D26/R25, 1.1.0): the sync server keeps the FIRST
+failure per run+test namespace and attaches `failed: {role, message}` to the
+poll responses of `/sync/count` and the 404s of `/sync/event` + `/sync/kv`;
+`barrier`/`waitForEvent`/`waitForValue` throw `PartnerFailure` (not
+`SyncTimeout`) when the failing role is not the caller. `sync.failFast =
+false` opts out. Verified by `harness/orchestrator/test/fail_fast_test.dart`
+(real client against real server; it dev-depends on `test_support` for that,
+which does not change test_support's own zero-dependency rule) and, on real
+devices, by a temporary two-role probe — notes in
+`_e2e/logs/r25_verification_notes.md`.
 
 Things that will bite if changed carelessly:
 - The orchestrator writes ONE Patrol bundle per run (into
@@ -138,8 +150,8 @@ inside `patrol test`, so install is not separable without prebuild).
 The harness is semver-versioned in `harness/VERSION` (inside the vendored
 tree, so an integrated app carries its version; **absent == 1.0.0**), with
 one `CHANGELOG.md` section per version, each carrying a **Migration**
-subsection written even when it is empty. Current version: **1.0.0**
-(baseline = everything through M5).
+subsection written even when it is empty. Current version: **1.1.0**
+(1.0.0 = baseline, everything through M5; 1.1.0 = fail-fast across roles).
 
 - Work lands on `dev`: every change bumps `VERSION`, adds its changelog
   section **in the same commit**, and is tagged `v<version>`.
@@ -151,8 +163,9 @@ subsection written even when it is empty. Current version: **1.0.0**
   `docs/playbook/09-upgrading.md`.
 
 Field-report findings from a real integration (JVM backend, existing Patrol
-suite, worktrees) are filed as issues #1–#11 on the GitHub repo; #1, #2, #3
-and #7 are the high-severity ones and none are fixed yet.
+suite, worktrees) are filed as issues #1–#12 on the GitHub repo; #1, #2, #3
+and #7 are the high-severity ones and are NOT fixed yet. #12 (fail-fast) is
+done in 1.1.0; #10's `--keep-all` item is done.
 
 ## Local config (added for M3, simplified by D23)
 

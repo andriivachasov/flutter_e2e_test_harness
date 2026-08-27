@@ -16,6 +16,28 @@ and test so concurrent tests never collide. Primitives:
 
 All waits take a `timeout` and throw `SyncTimeout` — never hang.
 
+**Fail-fast (R25).** If another role fails, every partner's outstanding wait
+ends *immediately* with `PartnerFailure`, naming the role that actually
+failed and its message — instead of polling to its own deadline and throwing
+a `SyncTimeout` that names the partner. This is on by default and needs no
+code in the test; it works because `sync.guard(...)` publishes the failure
+from the one `catch` that wraps the whole body, so even a role that dies in
+its first step releases the others.
+
+```
+PartnerFailure: role "A" failed: Bad state: expected 1 message, found 0
+```
+
+Read it as: *A is the bug; B is collateral.* Go to A's screenshots and
+`test.log`.
+
+Opt out only in a test that legitimately expects a partner to fail:
+
+```dart
+sync.failFast = false;                       // whole test
+await sync.barrier('done', failFast: false); // one wait
+```
+
 **Shape of a two-user test.**
 
 ```
@@ -39,6 +61,9 @@ barrier('done', 2 min)                nobody exits while the other asserts
 - N > 2: `parties` defaults to the manifest's role count; give each role a
   distinct name (`A`, `B`, `C`) and use `waitForValue('email/C')` etc.
 
-**Failure.** `SyncTimeout('barrier "app-ready": needed 2 parties within
-600s (role=B)')` in `test.log` means the other role never got there — look
-at *its* screenshots/logs first.
+**Failure.** With fail-fast on, a partner's failure surfaces as
+`PartnerFailure` naming that partner — start there. A `SyncTimeout` now
+means something else: the other role never *arrived* and never *failed*
+either — it is still building, still booting, or its process died without
+running `guard` (a build failure, a crash on launch). Look at its
+`test.log` first, and at the build output before the test output.

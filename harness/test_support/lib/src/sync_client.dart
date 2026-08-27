@@ -12,6 +12,22 @@ class SyncTimeout implements Exception {
   String toString() => 'SyncTimeout: $message';
 }
 
+/// Thrown when a wait ends early because ANOTHER role in the same test
+/// failed. The role and message name the true cause, so the first error a
+/// reader sees is not this process's own timeout.
+class PartnerFailure implements Exception {
+  PartnerFailure(this.role, this.message);
+
+  /// The role that actually failed — not the role that threw this.
+  final String role;
+
+  /// That role's failure message.
+  final String message;
+
+  @override
+  String toString() => 'PartnerFailure: role "$role" failed: $message';
+}
+
 /// Client for the orchestrator's sync server (barriers, events, kv).
 ///
 /// Transport is plain HTTP polling — no held connections, no dependencies.
@@ -22,6 +38,32 @@ class SyncClient {
   final TestContext ctx;
   final String _ns;
   final Duration pollInterval = const Duration(milliseconds: 300);
+
+  /// Ends a wait as soon as another role in this test reports a failure,
+  /// throwing [PartnerFailure] instead of polling to this role's own
+  /// deadline and throwing a [SyncTimeout] that names this role.
+  ///
+  /// On by default. Set it false (or pass `failFast: false` to a single
+  /// wait) in a test that legitimately expects a partner to fail.
+  bool failFast = true;
+
+  /// Reads the `failed` marker the sync server attaches to a waiter's
+  /// response. Null when absent, when fail-fast is off, or when the failing
+  /// role is this one — that role is already unwinding through [guard].
+  PartnerFailure? _partnerFailure(String text, bool enabled) {
+    if (!enabled) return null;
+    try {
+      final body = jsonDecode(text);
+      if (body is! Map) return null;
+      final failed = body['failed'];
+      if (failed is! Map) return null;
+      final role = '${failed['role'] ?? ''}';
+      if (role.isEmpty || role == ctx.role) return null;
+      return PartnerFailure(role, '${failed['message'] ?? ''}');
+    } on FormatException {
+      return null; // not JSON — nothing to learn from it
+    }
+  }
 
   Uri _uri(String path, Map<String, String> query) => Uri.parse(ctx.syncUrl)
       .replace(path: path, queryParameters: {'ns': _ns, ...query});
@@ -44,7 +86,12 @@ class SyncClient {
 
   /// Blocks until [ctx.parties] parties (or [parties], if given) have arrived
   /// at the barrier [name].
-  Future<void> barrier(String name, {int? parties, Duration? timeout}) async {
+  Future<void> barrier(
+    String name, {
+    int? parties,
+    Duration? timeout,
+    bool? failFast,
+  }) async {
     final needed = parties ?? ctx.parties;
     final limit = timeout ?? const Duration(seconds: 120);
     await _send(
@@ -61,6 +108,8 @@ class SyncClient {
         final count = (jsonDecode(text) as Map<String, dynamic>)['count'] as int;
         if (count >= needed) return;
       }
+      final failure = _partnerFailure(text, failFast ?? this.failFast);
+      if (failure != null) throw failure;
       if (DateTime.now().isAfter(deadline)) {
         throw SyncTimeout('barrier "$name": needed $needed parties '
             'within ${limit.inSeconds}s (role=${ctx.role})');
@@ -78,6 +127,7 @@ class SyncClient {
   Future<Map<String, Object?>> waitForEvent(
     String name, {
     Duration? timeout,
+    bool? failFast,
   }) async {
     final limit = timeout ?? const Duration(seconds: 120);
     final deadline = DateTime.now().add(limit);
@@ -89,6 +139,8 @@ class SyncClient {
       if (status == 200) {
         return (jsonDecode(text) as Map<String, dynamic>).cast<String, Object?>();
       }
+      final failure = _partnerFailure(text, failFast ?? this.failFast);
+      if (failure != null) throw failure;
       if (DateTime.now().isAfter(deadline)) {
         throw SyncTimeout('event "$name" not emitted '
             'within ${limit.inSeconds}s (role=${ctx.role})');
@@ -129,7 +181,9 @@ class SyncClient {
   }
 
   /// Reports the failure that is about to end this test (step + message).
-  /// Never throws.
+  /// The first report in a test also releases every partner role waiting on
+  /// a barrier/event/value, which throws [PartnerFailure] there. Never
+  /// throws.
   Future<void> reportFailure(Object error) async {
     if (ctx.syncUrl.isEmpty) return;
     try {
@@ -143,14 +197,21 @@ class SyncClient {
     }
   }
 
-  /// Runs [body]; on failure takes the failure screenshot (R13), reports
-  /// the failure (R14) and rethrows. Wrap every test body in it.
+  /// Runs [body]; on failure reports the failure (R14), takes the failure
+  /// screenshot (R13) and rethrows. Wrap every test body in it.
+  ///
+  /// This single wrapping catch is the *only* place a failure is published,
+  /// which is what makes fail-fast cover a role that fails before it ever
+  /// reaches a wait — there is no window in which the body has failed and
+  /// partners have not been told. Reporting runs before the screenshot on
+  /// purpose: the screenshot can take tens of seconds, and every partner
+  /// spends that time still waiting.
   Future<T> guard<T>(Future<T> Function() body) async {
     try {
       return await body();
     } on Object catch (e) {
-      await screenshot('failure');
       await reportFailure(e);
+      await screenshot('failure');
       rethrow;
     }
   }
@@ -184,7 +245,11 @@ class SyncClient {
   }
 
   /// Reads the value under [key], waiting until it exists.
-  Future<Object?> waitForValue(String key, {Duration? timeout}) async {
+  Future<Object?> waitForValue(
+    String key, {
+    Duration? timeout,
+    bool? failFast,
+  }) async {
     final limit = timeout ?? const Duration(seconds: 120);
     final deadline = DateTime.now().add(limit);
     while (true) {
@@ -192,6 +257,8 @@ class SyncClient {
       if (status == 200) {
         return (jsonDecode(text) as Map<String, dynamic>)['value'];
       }
+      final failure = _partnerFailure(text, failFast ?? this.failFast);
+      if (failure != null) throw failure;
       if (DateTime.now().isAfter(deadline)) {
         throw SyncTimeout('kv "$key" not set within ${limit.inSeconds}s');
       }

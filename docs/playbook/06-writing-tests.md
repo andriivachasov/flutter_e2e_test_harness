@@ -132,11 +132,15 @@ Reference modules to copy/adapt: `<REF>/example/app/integration_test/modules/`
 | `put(key, value)` / `waitForValue(key, {timeout})` | cross-device handoff (e.g. exchange emails) |
 | `screenshot(label)` | host-side screenshot into `screenshots/NN_label.png`; never throws |
 | `step(name)` | module boundary (timings, failure clustering); never throws |
-| `guard(body)` | failure screenshot + failure report + rethrow |
+| `guard(body)` | failure report + failure screenshot + rethrow; also what releases partner roles (R25) |
 | `seed(profile)` / `resetAccount()` | mid-test seeding / account-level reset via the backend's test endpoints |
 
 Namespaced per run+test, so concurrent tests never see each other's
-barriers. Patterns: [../patterns/multi-user-sync.md](../patterns/multi-user-sync.md).
+barriers. Every wait also ends early with `PartnerFailure` if a *different*
+role in the same test fails, so a red multi-device test reports the role
+that broke instead of a partner's timeout — on by default, opt out with
+`sync.failFast = false` or `failFast: false` on one wait. Patterns:
+[../patterns/multi-user-sync.md](../patterns/multi-user-sync.md).
 
 ## 6.5 A two-user test, minimal shape
 
@@ -181,7 +185,9 @@ user server-side and assert the UI empties. Pattern and rules:
   `matchRoot: true`, or assert `find.text(..)` directly. `descendant` is for
   containers (lists).
 - Keep the first barrier's timeout long (10 min): cold caches build one
-  platform much slower than the other.
+  platform much slower than the other. Long timeouts no longer cost you a
+  slow red run — a partner's *failure* releases the wait immediately (R25);
+  the timeout is only reached when nobody failed and nobody arrived.
 - One test = one manifest entry = one file; share behaviour through
   modules, not through inheritance or globals.
 

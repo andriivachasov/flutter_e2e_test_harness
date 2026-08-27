@@ -12,6 +12,12 @@ class SyncServer {
   final Map<String, Map<String, Object?>> _events = {};
   final Map<String, Object?> _kv = {};
 
+  /// First failure reported per namespace (`ns` -> `{role, message}`).
+  /// Waiters poll this alongside their own primitive so a partner's failure
+  /// ends their wait immediately instead of at their own deadline (R25).
+  /// First writer wins: later reports are cascades of the first one.
+  final Map<String, Map<String, String>> _failures = {};
+
   /// Invoked when a test process asks for a screenshot of its own device
   /// (`POST /artifact/screenshot?ns=<runId>/<testId>&role=..&label=..`).
   /// Returns the path written. The runner wires this to the collector;
@@ -33,7 +39,8 @@ class SyncServer {
   void Function(String ns, String role, String name)? onStep;
 
   /// `POST /harness/failure?ns=..&role=..` body `{"message"}` — the test
-  /// is failing; recorded with the step it was in.
+  /// is failing; recorded with the step it was in. The first such report
+  /// per namespace is also published to the namespace's waiters (R25).
   void Function(String ns, String role, String message)? onFailure;
 
   HttpServer? _server;
@@ -64,6 +71,14 @@ class SyncServer {
     final ns = q['ns'] ?? '';
     String key(String name) => '$ns|$name';
 
+    /// Adds `failed: {role, message}` to a body a waiter is still polling,
+    /// so it learns about a partner's failure in the request it was already
+    /// making — no extra round trip per poll.
+    Map<String, Object?> withFailure(Map<String, Object?> body) {
+      final f = _failures[ns];
+      return f == null ? body : {...body, 'failed': f};
+    }
+
     if (path == '/health') return json({'status': 'ok'});
 
     if (req.method == 'POST' && path == '/sync/arrive') {
@@ -79,7 +94,7 @@ class SyncServer {
     if (req.method == 'GET' && path == '/sync/count') {
       final name = q['name'];
       if (name == null) return json({'error': 'name required'}, status: 400);
-      return json({'count': _barriers[key(name)]?.length ?? 0});
+      return json(withFailure({'count': _barriers[key(name)]?.length ?? 0}));
     }
 
     if (req.method == 'POST' && path == '/sync/emit') {
@@ -98,7 +113,9 @@ class SyncServer {
       final name = q['name'];
       if (name == null) return json({'error': 'name required'}, status: 400);
       final data = _events[key(name)];
-      if (data == null) return json({'error': 'not emitted'}, status: 404);
+      if (data == null) {
+        return json(withFailure({'error': 'not emitted'}), status: 404);
+      }
       return json(data);
     }
 
@@ -115,7 +132,7 @@ class SyncServer {
       final k = q['key'];
       if (k == null) return json({'error': 'key required'}, status: 400);
       if (!_kv.containsKey(key(k))) {
-        return json({'error': 'not set'}, status: 404);
+        return json(withFailure({'error': 'not set'}), status: 404);
       }
       return json({'value': _kv[key(k)]});
     }
@@ -152,6 +169,7 @@ class SyncServer {
       final message = bodyText.isEmpty
           ? ''
           : '${(jsonDecode(bodyText) as Map<String, dynamic>)['message'] ?? ''}';
+      _failures.putIfAbsent(ns, () => {'role': role, 'message': message});
       onFailure?.call(ns, role, message);
       return json({'ok': true});
     }

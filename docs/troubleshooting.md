@@ -18,6 +18,7 @@ Start with `e2e doctor`, then `runs/<id>/summary.html` → failing role →
 | Android role: `app log capture … ended early (exit 255)`, screenshots fail, adb "device offline" | software-GPU emulator (lavapipe) wedges adb during `screencap` | `devices.android.gpu: host` + `hw.gpu.mode=host` in the AVD (`e2e doctor` warns); `swangle` on GPU-less hosts |
 | iOS: `simctl recordVideo exited immediately` | recorder busy / stale process | `pgrep -fl recordVideo`, kill leftovers; doctor's leftover-process check |
 | `SyncTimeout: barrier "app-ready"` | the other role never launched (build failed, crashed) | look at the *other* role's `test.log` first; keep the first barrier at 10 min |
+| `PartnerFailure: role "A" failed: …` | another role of this multi-role test failed; this role was released early on purpose (R25) | the named role is the real failure — read *its* `failedStep`, screenshots and `test.log`. This role's own artifacts show only where it was waiting |
 | `not visible within 30s: … auth_page (stale session on device?)` | `reset_app_data: false` or the app restores a session from somewhere else | `executor.reset_app_data: true`; make sure the session lives in app data, not the keychain |
 | `patrol test` fails with Gradle/Xcode errors on first run | bootstrap incomplete | `bash harness/tools/patrol_bootstrap.sh <app>` again; `flutter clean`; `pod install` |
 | iOS build: `RunnerUITests` missing / scheme error | xcodeproj target not added | re-run the bootstrap (it repairs settings); check `ios/Runner.xcodeproj` contains `RunnerUITests` |

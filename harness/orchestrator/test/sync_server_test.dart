@@ -72,6 +72,38 @@ void main() {
     expect(data['value'], 'c-42');
   });
 
+  test('a reported failure rides along on the responses waiters poll',
+      () async {
+    // The wire shape SyncClient reads. Absent until someone fails, so an
+    // older client simply never sees it (see fail_fast_test.dart for the
+    // behaviour this drives).
+    final (_, before) = await call('GET', '/sync/count?ns=r/t&name=go');
+    expect(before.containsKey('failed'), isFalse);
+
+    await call('POST', '/harness/failure?ns=r/t&role=A',
+        body: {'message': 'A blew up'});
+
+    for (final path in [
+      '/sync/count?ns=r/t&name=go',
+      '/sync/event?ns=r/t&name=sent',
+      '/sync/kv?ns=r/t&key=chat',
+    ]) {
+      final (_, body) = await call('GET', path);
+      expect(body['failed'], {'role': 'A', 'message': 'A blew up'},
+          reason: path);
+    }
+
+    // First writer wins: a cascade must not rewrite the cause.
+    await call('POST', '/harness/failure?ns=r/t&role=B',
+        body: {'message': 'cascade'});
+    final (_, after) = await call('GET', '/sync/count?ns=r/t&name=go');
+    expect((after['failed']! as Map)['role'], 'A');
+
+    // Namespaced like every other primitive.
+    final (_, other) = await call('GET', '/sync/count?ns=r/other&name=go');
+    expect(other.containsKey('failed'), isFalse);
+  });
+
   test('screenshot route forwards to the handler and reports failures',
       () async {
     final (unavailable, _) =
