@@ -48,6 +48,45 @@ Write the answers down; later steps branch on them.
 4. **Is there a CI/GPU-less machine?** Then `devices.android.gpu: swangle`
    (software renderer); the default `host` needs a real GPU driver.
 
+## Already have an e2e suite? Migrating, not just adding
+
+This playbook assumes a green field, but most integrations aren't. What
+happens depends on what the existing suite is built on:
+
+- **Already Patrol / `integration_test`-based** → the easy case.
+  `harness/tools/patrol_bootstrap.sh` (step 05) is idempotent: it checks
+  for an existing `patrol:` pubspec section, `PatrolJUnitRunner`, the iOS
+  `RunnerUITests` target, etc. before writing anything, so it won't
+  clobber a prior Patrol setup. Existing `patrolTest` files can keep
+  running standalone (`patrol test`) while you migrate.
+- **A different framework** (Appium, Maestro, `flutter_driver`, native
+  XCUITest/Espresso driven separately) → expect friction at the native
+  layer. The harness wants to own the Gradle test runner and the Xcode
+  `RunnerUITests` target; a coexisting framework that also patches those
+  can conflict. Run the two side by side only if they don't touch the
+  same native test targets, and budget time to resolve that before step
+  05.
+
+Either way, **existing tests don't gain anything from the harness just by
+sitting in the repo.** Pooled test users, multi-device sync barriers,
+seeding/reset, artifact bundles and flake quarantine are only available to
+tests written as harness modules, wrapped in `sync.guard(...)`, marked
+with `sync.step(...)`, and declared in the manifest (step 06). Treat this
+as a migration, not a bolt-on:
+
+1. Vendor and configure the harness (steps 02–05) without deleting the old
+   suite.
+2. Pick the smallest existing test that represents a single-user flow;
+   rewrite it as a harness module + manifest entry (step 06). Get it green
+   through `e2e run` before touching anything else.
+3. Port the rest incrementally, prioritizing tests that exercise real
+   multi-user/multi-device behavior — that's where the sync primitives pay
+   for themselves and where ad hoc old-suite waits
+   (`sleep`/polling-by-hand) tend to be flakiest.
+4. Retire the old suite (or its CI job) only once step 08's
+   `check_integration.sh` passes and `e2e run` is green twice in a row —
+   don't run both suites in CI indefinitely; pick a cutover point.
+
 ## Prerequisite knowledge you can assume
 
 - Flutter ≥ 3.x with Dart 3, Patrol 4.x (`patrol_cli` on PATH).
