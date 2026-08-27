@@ -102,10 +102,13 @@ if (secret != null && req.headers['x-e2e-test-secret'] != secret) {
 }
 ```
 
-The harness treats the value like every other secret: it is redacted from
-`summary.json`, `orchestrator.log` and `test.log`, and only the header
-*name* is ever printed. Make sure your backend keeps that promise too —
-log header names, never their values.
+The harness treats the value like every other secret: it never writes the
+value anywhere itself — `summary.json`, `doctor` and the config-source
+lines carry the header *name* and `<set>`, and `test.log` is scrubbed. The
+one way it could come back is your backend echoing the header in an error
+body, so the harness scrubs the value out of a failed `/test/*` response
+before that reaches `orchestrator.log`. Make sure your backend keeps the
+promise on its own side too — log header names, never their values.
 
 With `firebase.mode: none` there are no users, so the harness never calls
 `/test/seed` or `/test/reset/user` (a manifest `seed:` entry is rejected

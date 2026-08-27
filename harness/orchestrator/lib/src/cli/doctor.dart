@@ -325,6 +325,32 @@ Future<int> doctor(HarnessConfig config) async {
           return false;
         }
       });
+  // Flavored apps do not keep these files at the canonical path: the Google
+  // Services Gradle plugin also searches android/app/src/<flavor>/ and
+  // src/<flavor>/<buildType>/, and a flavored iOS project keeps the plist in
+  // a per-flavor directory and copies it in with a build phase. Hard-coding
+  // android/app/google-services.json and ios/Runner/GoogleService-Info.plist
+  // therefore failed a correctly configured app on a *required* check, so
+  // the presence test is "anywhere in the tree" instead. Generated and
+  // vendored directories are skipped: Pods/ in particular can be enormous,
+  // and a copy under build/ is an artifact, not configuration.
+  const skipDirs = {'Pods', 'build', '.symlinks', 'ephemeral', '.dart_tool'};
+  bool anywhereUnder(String root, String name) {
+    final dir = Directory(root);
+    if (!dir.existsSync()) return false;
+    try {
+      for (final e in dir.listSync(recursive: true, followLinks: false)) {
+        if (e is! File || e.uri.pathSegments.last != name) continue;
+        final rel = e.path.substring(root.length).split(Platform.pathSeparator);
+        if (rel.any(skipDirs.contains)) continue;
+        return true;
+      }
+    } on FileSystemException {
+      return false;
+    }
+    return false;
+  }
+
   final androidUsesGoogleServices = mentions([
     '$appDir/android/app/build.gradle',
     '$appDir/android/app/build.gradle.kts',
@@ -342,11 +368,11 @@ Future<int> doctor(HarnessConfig config) async {
       probe: () async {
         final missing = [
           if (androidUsesGoogleServices &&
-              !File('$appDir/android/app/google-services.json').existsSync())
-            'android/app/google-services.json',
+              !anywhereUnder('$appDir/android/app/src', 'google-services.json'))
+            'google-services.json',
           if (iosUsesGoogleServices &&
-              !File('$appDir/ios/Runner/GoogleService-Info.plist').existsSync())
-            'ios/Runner/GoogleService-Info.plist',
+              !anywhereUnder('$appDir/ios', 'GoogleService-Info.plist'))
+            'GoogleService-Info.plist',
         ];
         return missing.isEmpty
             ? null
@@ -355,7 +381,9 @@ Future<int> doctor(HarnessConfig config) async {
       fix: 'cd $appDir && flutterfire configure (or copy the files from '
           'another checkout/worktree — they are gitignored in most Flutter '
           'repos, so a fresh clone has none). Without them the build dies '
-          'minutes into a run at :app:processDebugGoogleServices',
+          'minutes into a run at :app:processDebugGoogleServices. A flavored '
+          'app may keep them under android/app/src/<flavor>/ or an iOS '
+          'per-flavor directory — anywhere in the tree counts',
     );
   }
 

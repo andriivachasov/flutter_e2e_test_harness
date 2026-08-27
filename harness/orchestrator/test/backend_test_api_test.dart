@@ -190,5 +190,39 @@ backend:
       }
       expect(redacted, isNot(contains(secret)));
     });
+
+    // L1: the failure path interpolates the backend's own response body into
+    // a StateError that lands in orchestrator.log. A backend that echoes the
+    // offending header in its 403 would otherwise leak the secret there.
+    test('a backend error body that echoes the secret is scrubbed', () async {
+      final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      addTearDown(() => server.close(force: true));
+      server.listen((req) async {
+        await req.drain<void>();
+        req.response
+          ..statusCode = 403
+          ..write(jsonEncode({
+            'error': 'bad test secret',
+            'received': {'X-E2E-Test-Secret': secret},
+          }));
+        await req.response.close();
+      });
+
+      final config = configWith('backend:\n'
+          '  test_header:\n'
+          '    name: X-E2E-Test-Secret\n'
+          '    value: $secret\n');
+
+      await expectLater(
+        BackendTestApi(
+          baseUrl: 'http://127.0.0.1:${server.port}',
+          config: config,
+        ).resetAll(),
+        throwsA(isA<StateError>()
+            .having((e) => e.message, 'message', isNot(contains(secret)))
+            .having((e) => e.message, 'message', contains('<redacted>'))
+            .having((e) => e.message, 'message', contains('HTTP 403'))),
+      );
+    });
   });
 }

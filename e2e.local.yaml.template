@@ -63,9 +63,10 @@
 # If your backend cannot bind to loopback (a container, a shared host), or
 # you want a second factor anyway, the orchestrator can send a header with
 # every /test/* request; the backend rejects requests without it. Unset by
-# default. The VALUE IS A SECRET — that is why it lives here — and the
-# harness redacts it from summary.json and every log (only the header name
-# is ever printed).
+# default. The VALUE IS A SECRET — that is why it lives here. The harness
+# never writes it: summary.json, doctor and the config-source lines carry
+# the header name and <set>, test.log is scrubbed, and a failed /test/*
+# response body is scrubbed before it is reported.
 #
 # backend:
 #   test_header:

@@ -28,6 +28,38 @@ section is how a required step goes missing.
 
 ---
 
+## 1.2.2 — 2026-08-27
+
+The two remaining review findings from 1.2.0 worth fixing before the release
+sees wide use: a required check that failed correctly-configured apps, and a
+secret that could reach a log by a route nothing scrubbed.
+
+### Fixed
+
+- **Flavored apps no longer fail the Firebase config check.** 1.2.0 looked
+  only at `android/app/google-services.json` and
+  `ios/Runner/GoogleService-Info.plist`, but the Google Services Gradle plugin
+  also searches `android/app/src/<flavor>/` and
+  `src/<flavor>/<buildType>/`, and a flavored iOS project keeps the plist in a
+  per-flavor directory and copies it in with a build phase. A correctly
+  configured app therefore failed a **required** check with no way to opt out.
+  Both `e2e doctor` and `check_integration.sh` now accept the file anywhere
+  under `android/app/src/` and `ios/` respectively, skipping generated and
+  vendored directories (`Pods/`, `build/`, `.symlinks/`, `ephemeral/`).
+- **A backend error body can no longer carry `backend.test_header` into
+  `orchestrator.log`.** A failed `/test/*` call raises a `StateError` that
+  interpolates the backend's own response body; a backend that echoes the
+  offending header in its 403 would have written the configured secret there
+  verbatim, and no redaction pass covered `orchestrator.log`. Every configured
+  value is now scrubbed out of that body before the error is raised, and the
+  claims in playbook 03 and `e2e.local.yaml.template` are restated to describe
+  what the harness actually does rather than promising a blanket log filter.
+
+### Migration
+
+None.
+
+---
 ## 1.2.1 — 2026-08-27
 
 Three defects in 1.2.0's own new code, found by a clean-context review of the

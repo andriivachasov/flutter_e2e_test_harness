@@ -12,7 +12,8 @@ import '../users/provisioner.dart';
 /// this surface is that the test backend binds to loopback and rejects
 /// non-loopback callers (playbook 03 §3.2). A backend that cannot do that
 /// can require a shared secret instead — `backend.test_header` is sent with
-/// every request below, and never logged (issue #7).
+/// every request below, and never written to a log or artifact by the
+/// harness (issue #7).
 ///
 ///   POST <seed_path>        {"email","profile","data"}
 ///   POST <reset_user_path>  {"email"}
@@ -55,8 +56,16 @@ class BackendTestApi {
       final res = await req.close().timeout(timeout);
       final text = await res.transform(utf8.decoder).join().timeout(timeout);
       if (res.statusCode != 200) {
+        // The body is the backend's, not ours: a backend that echoes the
+        // offending request header in its 403 would otherwise put the
+        // configured secret into orchestrator.log verbatim. Scrub every
+        // configured value before the message escapes (issue #7 / L1).
+        var detail = text;
+        for (final secret in config.backendTestHeaders.secretValues) {
+          detail = detail.replaceAll(secret, '<redacted>');
+        }
         throw StateError('backend test endpoint POST $path failed: '
-            'HTTP ${res.statusCode} $text');
+            'HTTP ${res.statusCode} $detail');
       }
     } finally {
       client.close();
