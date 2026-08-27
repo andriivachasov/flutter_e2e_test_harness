@@ -19,6 +19,43 @@ for the exact clone/copy commands. Quick version:
 git clone --depth 1 git@github.com:andriivachasov/flutter_e2e_test_harness.git /tmp/flutter_e2e_test_harness
 ```
 
+## Bootstrap prompt
+
+Paste this into an AI coding agent (e.g. Claude Code) running **inside the
+Flutter app repo** you want to add e2e tests to. It has everything the
+agent needs to start the playbook cold.
+
+```
+Integrate the e2e test harness from
+git@github.com:andriivachasov/flutter_e2e_test_harness.git into this repo.
+
+1. Clone it to a scratch directory (e.g. /tmp/flutter_e2e_test_harness) —
+   it is a reference repo you copy files out of, never a submodule,
+   subtree, or remote of this repo.
+2. Read <clone>/docs/README.md, then work through
+   <clone>/docs/playbook/00-overview.md through
+   08-definition-of-integrated.md in order. Don't skip 08 — it's the
+   acceptance test.
+3. Before vendoring, answer the decision tree in step 00 for this app:
+   - Does it talk to a backend you can run locally? HTTP+JSON, hosted
+     staging only, or no backend at all?
+   - Does it sign in with Firebase Auth (email/password, other
+     providers, or none)?
+   - Which platforms — iOS + Android, or Android-only?
+   - Is this running on a CI/GPU-less machine?
+4. Vendor harness/orchestrator, harness/test_support and harness/tools
+   per playbook 02, write e2e.yaml at this repo's root, wire up the app
+   per steps 03-06 (test-only backend endpoints, E2E_* dart-defines,
+   Patrol bootstrap, a manifest + tests for at least one smoke,
+   single-user and multi-user flow).
+5. Finish with step 07 (e2e doctor all-ok) and step 08
+   (check_integration.sh passes, e2e run green twice in a row).
+
+Ask me anything the decision tree needs that you can't determine from the
+code (e.g. whether there's a real Firebase project to test against, or
+whether CI is GPU-less) before making assumptions.
+```
+
 ## Layout
 
 | Path | What |
