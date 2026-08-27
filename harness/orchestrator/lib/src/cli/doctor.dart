@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import '../config.dart';
@@ -302,48 +303,60 @@ Future<int> doctor(HarnessConfig config) async {
   // google-services.json / GoogleService-Info.plist are gitignored in most
   // Flutter repos, so a fresh clone or worktree lacks them — and nothing
   // notices until Gradle fails at :app:processDebugGoogleServices minutes
-  // into a run, buried in runs/<id>/<test>/<role>/test.log. Only apps whose
-  // build actually consumes the files are checked (the example app talks to
-  // the Auth REST API and ships none).
-  if (!config.firebase.isNone) {
-    bool mentions(List<String> paths, String needle) => paths.any((p) {
+  // into a run, buried in runs/<id>/<test>/<role>/test.log.
+  //
+  // The gate is what the app's BUILD consumes, not firebase.mode: the
+  // google-services plugin fails the build whenever it is applied, and an
+  // app can use Firebase Analytics or Crashlytics while running the harness
+  // with firebase.mode: none. (The example app talks to the Auth REST API
+  // and applies no plugin, so no line is printed for it.)
+  //
+  // mentions() never throws: a file that cannot be read or is not valid
+  // UTF-8 must not take doctor down with a stack trace before it has
+  // reported anything.
+  bool mentions(List<String> paths, String needle) => paths.any((p) {
+        try {
           final f = File(p);
-          return f.existsSync() && f.readAsStringSync().contains(needle);
-        });
-    final androidUsesGoogleServices = mentions([
-      '$appDir/android/app/build.gradle',
-      '$appDir/android/app/build.gradle.kts',
-      '$appDir/android/build.gradle',
-      '$appDir/android/build.gradle.kts',
-      '$appDir/android/settings.gradle',
-      '$appDir/android/settings.gradle.kts',
-    ], 'google-services');
-    final iosUsesGoogleServices = Platform.isMacOS &&
-        mentions(['$appDir/ios/Runner.xcodeproj/project.pbxproj'],
-            'GoogleService-Info.plist');
-    if (androidUsesGoogleServices || iosUsesGoogleServices) {
-      await check(
-        'Firebase app config files',
-        probe: () async {
-          final missing = [
-            if (androidUsesGoogleServices &&
-                !File('$appDir/android/app/google-services.json').existsSync())
-              'android/app/google-services.json',
-            if (iosUsesGoogleServices &&
-                !File('$appDir/ios/Runner/GoogleService-Info.plist')
-                    .existsSync())
-              'ios/Runner/GoogleService-Info.plist',
-          ];
-          return missing.isEmpty
-              ? null
-              : 'missing ${missing.join(' and ')} in $appDir';
-        },
-        fix: 'cd $appDir && flutterfire configure (or copy the files from '
-            'another checkout/worktree — they are gitignored in most Flutter '
-            'repos, so a fresh clone has none). Without them the build dies '
-            'minutes into a run at :app:processDebugGoogleServices',
-      );
-    }
+          if (!f.existsSync()) return false;
+          return utf8
+              .decode(f.readAsBytesSync(), allowMalformed: true)
+              .contains(needle);
+        } on IOException {
+          return false;
+        }
+      });
+  final androidUsesGoogleServices = mentions([
+    '$appDir/android/app/build.gradle',
+    '$appDir/android/app/build.gradle.kts',
+    '$appDir/android/build.gradle',
+    '$appDir/android/build.gradle.kts',
+    '$appDir/android/settings.gradle',
+    '$appDir/android/settings.gradle.kts',
+  ], 'google-services');
+  final iosUsesGoogleServices = Platform.isMacOS &&
+      mentions(['$appDir/ios/Runner.xcodeproj/project.pbxproj'],
+          'GoogleService-Info.plist');
+  if (androidUsesGoogleServices || iosUsesGoogleServices) {
+    await check(
+      'Firebase app config files',
+      probe: () async {
+        final missing = [
+          if (androidUsesGoogleServices &&
+              !File('$appDir/android/app/google-services.json').existsSync())
+            'android/app/google-services.json',
+          if (iosUsesGoogleServices &&
+              !File('$appDir/ios/Runner/GoogleService-Info.plist').existsSync())
+            'ios/Runner/GoogleService-Info.plist',
+        ];
+        return missing.isEmpty
+            ? null
+            : 'missing ${missing.join(' and ')} in $appDir';
+      },
+      fix: 'cd $appDir && flutterfire configure (or copy the files from '
+          'another checkout/worktree — they are gitignored in most Flutter '
+          'repos, so a fresh clone has none). Without them the build dies '
+          'minutes into a run at :app:processDebugGoogleServices',
+    );
   }
 
   if (!config.firebase.isNone &&

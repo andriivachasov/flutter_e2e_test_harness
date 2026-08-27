@@ -33,7 +33,7 @@ if [ -n "$APP" ]; then
   grep -qE '^patrol:' "$APP/pubspec.yaml" && ok "pubspec has patrol: section" || bad "pubspec lacks patrol: section (bootstrap tool adds it)"
   grep -q PatrolJUnitRunner "$APP"/android/app/build.gradle* 2>/dev/null && ok "android gradle configured for Patrol" || bad "android gradle lacks PatrolJUnitRunner"
   grep -rq PatrolJUnitRunner "$APP/android/app/src/androidTest" 2>/dev/null && ok "android test entry point present (.java or .kt)" || bad "no androidTest entry point using PatrolJUnitRunner"
-  grep -rqE 'PATROL_INTEGRATION_TEST_IOS_(RUNNER|MODULE)|class RunnerUITests' "$APP/ios/RunnerUITests" 2>/dev/null && ok "iOS RunnerUITests entry point present (.m or .swift)" || bad "iOS RunnerUITests entry point missing"
+  grep -rqE 'PATROL_INTEGRATION_TEST_IOS_(RUNNER|MODULE)' "$APP/ios/RunnerUITests" 2>/dev/null && ok "iOS RunnerUITests entry point present (.m or .swift)" || bad "iOS RunnerUITests entry point missing"
   grep -q RunnerUITests "$APP/ios/Runner.xcodeproj/project.pbxproj" 2>/dev/null && ok "iOS RunnerUITests target in xcodeproj" || bad "iOS xcodeproj lacks RunnerUITests target"
   grep -q "RunnerUITests" "$APP/ios/Podfile" 2>/dev/null && ok "Podfile has RunnerUITests block" || bad "Podfile lacks RunnerUITests block"
   # Gitignored in most Flutter repos: a fresh clone/worktree builds for

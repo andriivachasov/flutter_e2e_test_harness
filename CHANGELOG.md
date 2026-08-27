@@ -28,6 +28,54 @@ section is how a required step goes missing.
 
 ---
 
+## 1.2.1 — 2026-08-27
+
+Three defects in 1.2.0's own new code, found by a clean-context review of the
+release, plus two documentation claims that were never true.
+
+### Fixed
+
+- **The Firebase-config doctor check is gated on the app's build, not on
+  `firebase.mode`.** 1.2.0 ran it only when `firebase.mode != none`, but the
+  `google-services` Gradle plugin fails the build whenever it is applied —
+  including for an app that uses Firebase Analytics or Crashlytics while
+  running the harness with `firebase.mode: none`. That app skipped the check
+  and still lost a full build to `:app:processDebugGoogleServices`, which is
+  precisely the failure 1.2.0 claimed to prevent. `check_integration.sh` was
+  already gated correctly and is unchanged.
+- **The iOS bootstrap guard no longer skips on a non-Patrol UI-test target.**
+  1.2.0 matched `class RunnerUITests` as well as Patrol's own markers, and
+  Xcode's stock UI Testing Bundle template declares exactly that. An app with
+  such a target got `skipped (exists)`, never received
+  `PATROL_INTEGRATION_TEST_IOS_RUNNER`, and built a UI-test bundle containing
+  no Patrol tests — while `check_integration.sh`, matching the same way,
+  certified the broken state as `[PASS]`. Both now require the
+  `PATROL_INTEGRATION_TEST_IOS_(RUNNER|MODULE)` markers. The Android guard was
+  always correctly specific and is unchanged.
+- **`e2e doctor` no longer dies on an unreadable or non-UTF-8 build file.**
+  The gradle/pbxproj scan ran outside the probe's error handling, so one
+  malformed byte in `build.gradle` threw out of `doctor()` with a stack trace
+  before it had reported anything. It now decodes leniently and treats an
+  unreadable file as "does not mention", so doctor always reports.
+
+### Documentation
+
+- 1.2.0's Migration said the new check "blocks a run". It does not: `e2e run`
+  never invokes `doctor()`, which is called only by the `doctor` command. The
+  check blocks `e2e doctor` (and `check_integration.sh` with it), and the
+  Migration now says so and tells you to run doctor yourself after upgrading.
+  `docs/troubleshooting.md` carried the same overclaim.
+
+### Migration
+
+None. Both behaviour fixes make the tools *more* correct on projects they
+previously mishandled; no configuration or integration change is required.
+If you bootstrapped an iOS project with 1.2.0 and it has a `RunnerUITests`
+target that never got Patrol wired in, re-run
+`bash harness/tools/patrol_bootstrap.sh <app>` — it will now write the entry
+point it previously skipped.
+
+---
 ## 1.2.0 — 2026-08-27
 
 Five findings from the field report on migrating an existing hand-rolled
@@ -71,6 +119,7 @@ paper cut, and one was a security hole in the reference backend.
   `runs/<id>/<test>/<role>/test.log`. The check is conditional on the app's
   build actually consuming the files (gradle applying `google-services`, the
   xcodeproj referencing the plist), so REST-based Firebase apps are unaffected.
+  (Re-gated in 1.2.1 — see below.)
 - **`e2e doctor` warns about a stale patrol Swift package** (#2) when SPM is
   disabled and the pbxproj still references one. macOS only, non-blocking.
 - **`backend.port_flag`** (#4) — a template for how the run's port reaches the
@@ -118,7 +167,9 @@ Three of the five need nothing. Two may need action:
    references `GoogleService-Info.plist`) but the files are not present.
    This is surfacing a real defect that previously cost a full build to
    discover: run `flutterfire configure` in the app dir, or copy the files
-   from another checkout. It is a *required* check, so it blocks a run.
+   from another checkout. It is a *required* check, so it fails
+   `e2e doctor` (and `check_integration.sh` with it) — note that `e2e run`
+   does not invoke doctor, so run it yourself after upgrading.
 2. **Lock your own backend's `/test/*` surface to loopback.** This is the
    security fix above and the harness cannot do it for you — the endpoints
    live in your backend. Bind to `127.0.0.1` and add a fail-closed

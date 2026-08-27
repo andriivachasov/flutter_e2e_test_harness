@@ -135,9 +135,12 @@ if [ "$SKIP_IOS" = 0 ]; then
   [ -f ios/Podfile ] || fail "ios/Podfile still missing"
   python3 "$HERE/podfile_patch.py" ios/Podfile || fail "podfile patch"
   step "ios: RunnerUITests"
-  # Same content-based guard as Android: an existing .m or .swift UI-test
-  # bootstrap (and any hand-written notes in it) is left alone.
-  UITEST_EXISTING=$(grep -rlE 'PATROL_INTEGRATION_TEST_IOS_(RUNNER|MODULE)|class RunnerUITests' ios/RunnerUITests 2>/dev/null | head -1)
+  # Same content-based guard as Android: an existing .m or .swift *Patrol*
+  # UI-test bootstrap (and any hand-written notes in it) is left alone. The
+  # marker must be Patrol's own — Xcode's stock UI Testing Bundle template
+  # also declares `class RunnerUITests`, and skipping on that would leave a
+  # non-Patrol target that builds a UI-test bundle with no Patrol tests.
+  UITEST_EXISTING=$(grep -rlE 'PATROL_INTEGRATION_TEST_IOS_(RUNNER|MODULE)' ios/RunnerUITests 2>/dev/null | head -1)
   if [ -n "$UITEST_EXISTING" ]; then
     echo "skipped (exists): $UITEST_EXISTING is already a Patrol UI-test entry point"
   else
