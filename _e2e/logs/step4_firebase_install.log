@@ -1,0 +1,122 @@
+==> Downloading Homebrew API data
+✔︎ JSON API packages.arm64_tahoe.jws.json
+==> Downloading bottle manifests
+✔︎ Bottle Manifest firebase-cli (15.28.1)
+==> Would install 1 formula:
+firebase-cli
+==> Would install 18 dependencies for firebase-cli:
+fmt
+ada-url
+brotli
+c-ares
+hdrhistogram_c
+libffi
+libnghttp2
+libnghttp3
+libngtcp2
+libuv
+llhttp
+simdutf
+merve
+nbytes
+simdjson
+sqlite
+uvwasi
+node
+==> Fetching downloads for: firebase-cli
+✔︎ Bottle Manifest libnghttp2 (1.70.0)
+✔︎ Bottle hdrhistogram_c (0.11.10)
+✔︎ Bottle merve (1.2.2_2)
+✔︎ Bottle brotli (1.2.0)
+✔︎ Bottle Manifest uvwasi (0.0.23)
+✔︎ Bottle ada-url (4.0.0)
+✔︎ Bottle Manifest brotli (1.2.0)
+✔︎ Bottle simdjson (4.6.8)
+✔︎ Bottle simdutf (9.1.0)
+✔︎ Bottle Manifest libffi (3.8.0)
+✔︎ Bottle sqlite (3.53.4)
+✔︎ Bottle libnghttp3 (1.18.0)
+✔︎ Bottle Manifest libuv (1.52.1)
+✔︎ Bottle libuv (1.52.1)
+✔︎ Bottle Manifest simdjson (4.6.8)
+✔︎ Bottle uvwasi (0.0.23)
+✔︎ Bottle Manifest libnghttp3 (1.18.0)
+✔︎ Bottle Manifest simdutf (9.1.0)
+✔︎ Bottle libnghttp2 (1.70.0)
+✔︎ Bottle fmt (12.2.0)
+✔︎ Bottle Manifest c-ares (1.34.8)
+✔︎ Bottle llhttp (9.4.3)
+✔︎ Bottle Manifest nbytes (0.1.4)
+✔︎ Bottle Manifest sqlite (3.53.4)
+✔︎ Bottle Manifest ada-url (4.0.0)
+✔︎ Bottle Manifest fmt (12.2.0)
+✔︎ Bottle libngtcp2 (1.25.0)
+✔︎ Bottle Manifest libngtcp2 (1.25.0)
+✔︎ Bottle c-ares (1.34.8)
+✔︎ Bottle libffi (3.8.0)
+✔︎ Bottle Manifest llhttp (9.4.3)
+✔︎ Bottle nbytes (0.1.4)
+✔︎ Bottle Manifest merve (1.2.2_2)
+✔︎ Bottle node (26.7.0)
+✔︎ Bottle Manifest hdrhistogram_c (0.11.10)
+✔︎ Bottle firebase-cli (15.28.1)
+✔︎ Bottle Manifest node (26.7.0)
+==> Installing dependencies for firebase-cli: fmt, ada-url, brotli, c-ares, hdrhistogram_c, libffi, libnghttp2, libnghttp3, libngtcp2, libuv, llhttp, simdutf, merve, nbytes, simdjson, sqlite, uvwasi and node
+==> Installing firebase-cli dependency: fmt
+==> Pouring fmt--12.2.0.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/fmt/12.2.0: 31 files, 1MB
+==> Installing firebase-cli dependency: ada-url
+==> Pouring ada-url--4.0.0.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/ada-url/4.0.0: 56 files, 1MB
+==> Installing firebase-cli dependency: brotli
+==> Pouring brotli--1.2.0.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/brotli/1.2.0: 33 files, 1.9MB
+==> Installing firebase-cli dependency: c-ares
+==> Pouring c-ares--1.34.8.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/c-ares/1.34.8: 176 files, 1MB
+==> Installing firebase-cli dependency: hdrhistogram_c
+==> Pouring hdrhistogram_c--0.11.10.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/hdrhistogram_c/0.11.10: 22 files, 154.0KB
+==> Installing firebase-cli dependency: libffi
+==> Pouring libffi--3.8.0.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/libffi/3.8.0: 18 files, 951.8KB
+==> Installing firebase-cli dependency: libnghttp2
+==> Pouring libnghttp2--1.70.0.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/libnghttp2/1.70.0: 14 files, 857.6KB
+==> Installing firebase-cli dependency: libnghttp3
+==> Pouring libnghttp3--1.18.0.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/libnghttp3/1.18.0: 20 files, 600.4KB
+==> Installing firebase-cli dependency: libngtcp2
+==> Pouring libngtcp2--1.25.0.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/libngtcp2/1.25.0: 21 files, 1.4MB
+==> Installing firebase-cli dependency: libuv
+==> Pouring libuv--1.52.1.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/libuv/1.52.1: 35 files, 1.3MB
+==> Installing firebase-cli dependency: llhttp
+==> Pouring llhttp--9.4.3.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/llhttp/9.4.3: 15 files, 147.8KB
+==> Installing firebase-cli dependency: simdutf
+==> Pouring simdutf--9.1.0.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/simdutf/9.1.0: 65 files, 2MB
+==> Installing firebase-cli dependency: merve
+==> Pouring merve--1.2.2_2.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/merve/1.2.2_2: 19 files, 134.8KB
+==> Installing firebase-cli dependency: nbytes
+==> Pouring nbytes--0.1.4.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/nbytes/0.1.4: 9 files, 71.2KB
+==> Installing firebase-cli dependency: simdjson
+==> Pouring simdjson--4.6.8.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/simdjson/4.6.8: 19 files, 8.0MB
+==> Installing firebase-cli dependency: sqlite
+==> Pouring sqlite--3.53.4.arm64_tahoe.bottle.1.tar.gz
+🍺  /opt/homebrew/Cellar/sqlite/3.53.4: 13 files, 5.3MB
+==> Installing firebase-cli dependency: uvwasi
+==> Pouring uvwasi--0.0.23.arm64_tahoe.bottle.1.tar.gz
+🍺  /opt/homebrew/Cellar/uvwasi/0.0.23: 15 files, 269.2KB
+==> Installing firebase-cli dependency: node
+==> Pouring node--26.7.0.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/node/26.7.0: 2,077 files, 89.3MB
+==> Installing firebase-cli
+==> Pouring firebase-cli--15.28.1.arm64_tahoe.bottle.tar.gz
+🍺  /opt/homebrew/Cellar/firebase-cli/15.28.1: 19,560 files, 188.8MB
+BREW_EXIT=0

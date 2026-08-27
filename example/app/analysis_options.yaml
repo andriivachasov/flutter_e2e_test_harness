@@ -1,0 +1,4 @@
+# Standard Flutter analysis without the flutter_lints package dependency.
+linter:
+  rules:
+    - avoid_print

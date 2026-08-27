@@ -1,0 +1,102 @@
+# Harness configuration. Paths are relative to this file.
+run:
+  artifacts_dir: runs          # gitignored; every run/audit bundle lands here
+  # Retention (D9/D24): keep the newest N runs and N audit reports. An
+  # audit needs its --runs N runs to exist only while it runs; afterwards
+  # its report is self-contained (summary snapshots) and its durable trace
+  # is the history entry below. `--keep-all` skips pruning for that command.
+  keep_runs: 20
+  keep_audits: 10
+  # Audit memory (D24): one small JSON per audit + a regenerated HISTORY.md
+  # (trend, regressions since the last audit). COMMIT this directory — it
+  # is the suite's memory; per-audit files never merge-conflict, HISTORY.md
+  # is derived (on conflict: `e2e history`).
+  history_dir: e2e-history
+  # Screen recording per role. Screenshots and logs are captured regardless.
+  capture_video: true
+  # R14 flake quarantine: tests carrying this tag still run and are
+  # reported, but their failures do not fail the run. `e2e audit` suggests
+  # candidates; a quarantined test that fails shows as QUARANTINED FAIL.
+  quarantine_tag: quarantine
+
+devices:
+  ios:
+    # Simulator device name as shown by `xcrun simctl list devices`.
+    name: "iPhone 16"
+  android:
+    # AVD name as shown by `emulator -list-avds`.
+    avd: "e2e_pixel"
+    # Emulator GPU mode. Software Vulkan (lavapipe, the default this AVD
+    # picked) wedges the adb link when screencap runs against a compositing
+    # app: measured 5/8 runs failing, 0/8 with "host".
+    gpu: host
+
+backend:
+  dir: example/backend
+  command: ["dart", "run", "bin/server.dart"]
+  health_path: /health
+  start_timeout_seconds: 60
+  # Test-only endpoints (enabled by E2E_TEST_MODE=1, which the harness sets):
+  #   seed_path        POST {"uid","email","profile","data"}   (R16)
+  #   reset_user_path  POST {"uid","email"}  account-level reset (R9b)
+  #   reset_path       POST                  run-level wipe
+  seed_path: /test/seed
+  reset_user_path: /test/reset/user
+  reset_path: /test/reset
+
+# Named seed profiles: <dir>/<profile>.json (see example/seeds/README.md).
+seeds:
+  dir: example/seeds
+
+app:
+  dir: example/app
+  # Used to detect the app launching on a device (video starts then, not
+  # during the build) — must match the platform projects.
+  ios_bundle_id: com.example.e2eExampleApp
+  android_package: com.example.e2e_example_app
+
+executor:
+  # Build app bundles once per platform before running tests (planned
+  # optimization, NOT implemented yet — parsed and ignored). Keep false.
+  prebuild: false
+  # R9a app-level reset: wipe the app's on-device data before every test
+  # role (Android `pm clear`, iOS uninstall + fresh install by Patrol), so
+  # every test starts cold — no restored session from the previous test.
+  reset_app_data: true
+  build_timeout_seconds: 1200
+  test_timeout_seconds: 900
+
+sync:
+  # First barrier includes app build+boot skew on cold caches.
+  app_ready_timeout_seconds: 600
+  step_timeout_seconds: 120
+
+# Firebase + user pool (D2/D6, R10, D23).
+#
+# Defaults are emulator-only and need nothing but the firebase CLI, so a
+# cold checkout runs without any local setup. To point the example at a
+# real test-only Firebase project, copy e2e.local.yaml.template ->
+# e2e.local.yaml (gitignored) and set project_id + api_key there — never
+# here. The harness needs NO admin credentials: the app registers the
+# pool accounts itself on first use.
+firebase:
+  mode: emulator                     # emulator | real
+  emulator_project_id: demo-e2e-harness  # "demo-" keeps the SDK off real projects
+  # 0 = a free port per run (parallel runs never collide); pin if you must.
+  auth_emulator_port: 0
+  # Firebase CLI executable; only its Auth emulator is used (no Java needed).
+  cli: firebase
+  # project_id / api_key describe the REAL project (D6) and are set only in
+  # e2e.local.yaml — never here.
+
+# Fixed, deterministic user pool (D23): every test role gets the account
+# <scope>-<role>@<email_domain> where scope = the test name, or the
+# manifest's `users: {role: label}` override for feature-shared accounts.
+# The APP registers an account on first use ("Continue") and signs in
+# afterwards; the harness never touches Firebase Auth. Data of every
+# account a run uses is reset server-side before and after each test.
+provisioner:
+  email_domain: e2e.example.com   # never a real mailbox
+  # One shared password. Fine for the emulator; for a real project set your
+  # own in e2e.local.yaml (pool_password) or E2E_POOL_PASSWORD.
+  # pool_password: e2e-Pool-Passw0rd

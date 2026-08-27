@@ -1,0 +1,67 @@
+# Test manifest read by the orchestrator (`e2e list` / `e2e run`).
+#
+# name    unique id; also the E2E_TEST_ID the app/backend logs are keyed by
+# target  test file, relative to the app directory
+# tags    at least one of: smoke, single-user, multi-user (R5)
+# roles   role name -> platform: ios | android | any
+#         `any` roles are scheduled onto whichever configured device is free,
+#         which is how independent single-user tests shard across devices
+#         (R19a). Multi-role tests hold all their devices for the duration.
+# seed    optional, role -> seed profile (a file in seeds.dir, without .json)
+#         applied to that role's account before the body runs (R8/R16)
+# users   optional, role -> pool scope label. Pool accounts are
+#         <scope>-<role>@<email_domain>; the scope defaults to the test
+#         name (own account per test role) and a label lets several tests
+#         of one feature share accounts (D23).
+#
+# The `quarantine` tag (run.quarantine_tag) marks known-flaky tests: they
+# still run and are reported, but their failures do not fail the run (R14).
+# `e2e audit --runs N` suggests which tests to tag.
+#
+# Every role gets a deterministic pool account (R10, D23); the test reads
+# it from TestContext.user and the app registers it on first use.
+tests:
+  - name: smoke_sign_in
+    target: integration_test/smoke_sign_in_test.dart
+    tags: [smoke, single-user]
+    roles:
+      A: any
+
+  - name: single_user_notes
+    target: integration_test/single_user_notes_test.dart
+    tags: [single-user]
+    roles:
+      A: any
+
+  - name: returning_user
+    target: integration_test/returning_user_test.dart
+    tags: [single-user, auth]
+    roles:
+      A: any
+
+  - name: cross_user_chat
+    target: integration_test/cross_user_chat_test.dart
+    tags: [smoke, multi-user]
+    roles:
+      A: ios
+      B: android
+    users:            # feature-scoped accounts shared by chat tests
+      A: chat
+      B: chat
+
+  - name: seeded_notes_reset
+    target: integration_test/seeded_notes_reset_test.dart
+    tags: [single-user, seeding]
+    roles:
+      A: any
+    seed:
+      A: user-with-history
+
+  # R14 fixture: fails deterministically on odd run sequence numbers, always
+  # at step "flaky-assertion". Quarantined, so the suite stays green while
+  # the audit keeps it visible. Not a product test.
+  - name: flaky_demo
+    target: integration_test/flaky_demo_test.dart
+    tags: [flaky-demo, quarantine]
+    roles:
+      A: any

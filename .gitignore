@@ -1,0 +1,34 @@
+.dart_tool/
+build/
+runs/
+.idea/
+*.iml
+.DS_Store
+example/app/.flutter-plugins*
+example/app/ios/Pods/
+example/app/ios/.symlinks/
+example/app/android/.gradle/
+example/app/android/local.properties
+
+# --- Machine-local config and secrets -------------------------------------
+# NEVER commit these. e2e.local.yaml.template is the committed documentation.
+e2e.local.yaml
+secrets/*
+!secrets/README.md
+*service-account*.json
+*serviceaccount*.json
+*firebase-adminsdk*.json
+*-adminsdk-*.json
+.env
+.env.local
+
+# Firebase project files are per-project identifiers; generated locally by
+# flutterfire configure, kept out of the repo (templates are committed).
+example/app/lib/firebase_options.dart
+example/app/android/app/google-services.json
+example/app/ios/Runner/GoogleService-Info.plist
+example/app/ios/firebase_app_id_file.json
+
+# Generated per run by the orchestrator (PatrolExecutor.prepareBundle)
+example/app/patrol_test/test_bundle.dart
+firebase-debug.log

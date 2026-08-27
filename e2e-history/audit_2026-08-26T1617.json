@@ -1,0 +1,74 @@
+{
+  "auditId": "audit_2026-08-26T1617",
+  "finishedAt": "2026-08-26T14:34:34.296248Z",
+  "runCount": 5,
+  "meta": {
+    "imported": true,
+    "host": "Andriis-MacBook-Pro.local"
+  },
+  "phases": {
+    "runP50Ms": 203039,
+    "runP95Ms": 217025
+  },
+  "tests": [
+    {
+      "name": "cross_user_chat",
+      "runs": 5,
+      "passed": 5,
+      "passRate": 1.0,
+      "verdict": "stable",
+      "quarantined": false,
+      "p50Ms": 85562,
+      "p95Ms": 88203,
+      "topCluster": null
+    },
+    {
+      "name": "flaky_demo",
+      "runs": 5,
+      "passed": 3,
+      "passRate": 0.6,
+      "verdict": "consistent-step",
+      "quarantined": true,
+      "p50Ms": 35716,
+      "p95Ms": 48656,
+      "topCluster": {
+        "step": "flaky-assertion",
+        "message": "Expected: true Actual: <false> injected flake: run seq # is odd",
+        "count": 2
+      }
+    },
+    {
+      "name": "seeded_notes_reset",
+      "runs": 5,
+      "passed": 5,
+      "passRate": 1.0,
+      "verdict": "stable",
+      "quarantined": false,
+      "p50Ms": 37061,
+      "p95Ms": 37407,
+      "topCluster": null
+    },
+    {
+      "name": "single_user_notes",
+      "runs": 5,
+      "passed": 5,
+      "passRate": 1.0,
+      "verdict": "stable",
+      "quarantined": false,
+      "p50Ms": 37397,
+      "p95Ms": 38600,
+      "topCluster": null
+    },
+    {
+      "name": "smoke_sign_in",
+      "runs": 5,
+      "passed": 5,
+      "passRate": 1.0,
+      "verdict": "stable",
+      "quarantined": false,
+      "p50Ms": 85145,
+      "p95Ms": 89637,
+      "topCluster": null
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+name: e2e_example_app
+description: Example app for the e2e harness (ping between two users).
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  path_provider: ^2.1.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  patrol: ^4.1.0
+  e2e_test_support:
+    path: ../../harness/test_support
+
+flutter:
+  uses-material-design: true
+  config:
+    # Patrol's documented iOS setup is CocoaPods-based; SPM opt-out is
+    # project-scoped. Revisit when Patrol documents pure-SPM setup (M2+).
+    enable-swift-package-manager: false
+
+patrol:
+  app_name: E2E Example
+  android:
+    package_name: com.example.e2e_example_app
+  ios:
+    bundle_id: com.example.e2eExampleApp

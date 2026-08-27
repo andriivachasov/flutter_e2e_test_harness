@@ -1,0 +1,52 @@
+[2026-08-26T15:32:53.233751] run 2026-08-26T1532_231 → /Users/a_vachasov/dev/claude_projects/e2e_test_harness/runs/2026-08-26T1532_231
+[2026-08-26T15:32:53.235947] tests: smoke_sign_in, single_user_notes, cross_user_chat, seeded_notes_reset
+[2026-08-26T15:32:53.236494] firebase: {mode: real, projectId: fire…<redacted>, apiKey: null, serviceAccountKeyPath: <set>, authEmulatorPort: 0} provisioner: pooled
+[2026-08-26T15:32:53.236574] using real Firebase project fire…<redacted>
+[2026-08-26T15:32:54.282970] web API key discovered from a registered app
+[2026-08-26T15:32:54.285555] starting backend on port 53228
+[2026-08-26T15:32:54.946209] sync server on port 53233
+[2026-08-26T15:32:55.217472] provisioner pooled ready
+[2026-08-26T15:32:55.219651] booting devices: ios, android
+[2026-08-26T15:32:55.291069] ready: android:e2e_pixel(emulator-5554) (69 ms)
+[2026-08-26T15:32:55.416010] ready: ios:iPhone 16(07F94C82-4E7C-4B05-9076-C33B80D14E0B) (196 ms)
+[2026-08-26T15:32:55.419693] scheduling smoke_sign_in on A=android:e2e_pixel(emulator-5554)
+[2026-08-26T15:32:55.420262] === test smoke_sign_in ===
+[2026-08-26T15:32:55.420439] scheduling single_user_notes on A=ios:iPhone 16(07F94C82-4E7C-4B05-9076-C33B80D14E0B)
+[2026-08-26T15:32:55.420453] === test single_user_notes ===
+[2026-08-26T15:32:58.237614] smoke_sign_in/A: user e2e-pool-1@e2e.example.com
+[2026-08-26T15:32:59.655979] launching smoke_sign_in role=A on android:e2e_pixel(emulator-5554) (patrol ports 53263/53264)
+[2026-08-26T15:33:00.986483] single_user_notes/A: user e2e-pool-2@e2e.example.com
+[2026-08-26T15:33:01.319579] launching single_user_notes role=A on ios:iPhone 16(07F94C82-4E7C-4B05-9076-C33B80D14E0B) (patrol ports 53279/53280)
+[2026-08-26T15:33:34.838148] screenshot single_user_notes/A: 01_no-notes.png
+[2026-08-26T15:33:36.171187] screenshot single_user_notes/A: 02_two-notes.png
+[2026-08-26T15:33:37.633979] test single_user_notes: PASS
+[2026-08-26T15:33:38.873803] scheduling seeded_notes_reset on A=ios:iPhone 16(07F94C82-4E7C-4B05-9076-C33B80D14E0B)
+[2026-08-26T15:33:38.874027] === test seeded_notes_reset ===
+[2026-08-26T15:33:41.577164] seeded_notes_reset/A: user e2e-pool-2@e2e.example.com seeded with "user-with-history"
+[2026-08-26T15:33:41.916598] launching seeded_notes_reset role=A on ios:iPhone 16(07F94C82-4E7C-4B05-9076-C33B80D14E0B) (patrol ports 53621/53622)
+[2026-08-26T15:33:49.366990] screenshot smoke_sign_in/A: 01_sign-in-page.png
+[2026-08-26T15:33:55.473117] screenshot smoke_sign_in/A: 02_home.png
+[2026-08-26T15:34:01.572749] test smoke_sign_in: PASS
+[2026-08-26T15:34:14.333626] screenshot seeded_notes_reset/A: 01_seeded.png
+[2026-08-26T15:34:14.337755] account reset seeded_notes_reset/A (mid-test)
+[2026-08-26T15:34:15.348932] screenshot seeded_notes_reset/A: 02_after-reset.png
+[2026-08-26T15:34:15.353797] seeded seeded_notes_reset/A with "user-with-history" (mid-test)
+[2026-08-26T15:34:16.584642] screenshot seeded_notes_reset/A: 03_re-seeded.png
+[2026-08-26T15:34:17.918603] test seeded_notes_reset: PASS
+[2026-08-26T15:34:19.116151] scheduling cross_user_chat on A=ios:iPhone 16(07F94C82-4E7C-4B05-9076-C33B80D14E0B), B=android:e2e_pixel(emulator-5554)
+[2026-08-26T15:34:19.116307] === test cross_user_chat ===
+[2026-08-26T15:34:21.860390] cross_user_chat/A: user e2e-pool-1@e2e.example.com
+[2026-08-26T15:34:24.545255] cross_user_chat/B: user e2e-pool-2@e2e.example.com
+[2026-08-26T15:34:26.227684] launching cross_user_chat role=A on ios:iPhone 16(07F94C82-4E7C-4B05-9076-C33B80D14E0B) (patrol ports 53809/53810)
+[2026-08-26T15:34:26.228258] launching cross_user_chat role=B on android:e2e_pixel(emulator-5554) (patrol ports 53811/53812)
+[2026-08-26T15:34:59.463154] screenshot cross_user_chat/A: 01_signed-in.png
+[2026-08-26T15:35:23.060764] screenshot cross_user_chat/B: 01_signed-in.png
+[2026-08-26T15:35:26.367099] screenshot cross_user_chat/A: 02_chat-open.png
+[2026-08-26T15:35:26.860249] screenshot cross_user_chat/A: 03_sent.png
+[2026-08-26T15:35:28.706763] screenshot cross_user_chat/B: 02_chat-open.png
+[2026-08-26T15:35:30.752482] screenshot cross_user_chat/B: 03_received.png
+[2026-08-26T15:35:31.608480] screenshot cross_user_chat/A: 04_reply-received.png
+[2026-08-26T15:35:32.650206] screenshot cross_user_chat/B: 04_replied.png
+[2026-08-26T15:35:37.697221] test cross_user_chat: PASS
+[2026-08-26T15:35:42.637349] summary: /Users/a_vachasov/dev/claude_projects/e2e_test_harness/runs/2026-08-26T1532_231/summary.html
+[2026-08-26T15:35:42.637490] result: 4/4 passed, exit 0

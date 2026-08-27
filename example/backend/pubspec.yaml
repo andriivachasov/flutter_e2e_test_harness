@@ -1,0 +1,13 @@
+name: e2e_example_backend
+description: Minimal HTTP/1.1+JSON backend for the e2e harness example.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+dependencies:
+  shelf: ^1.4.1
+
+dev_dependencies:
+  test: ^1.25.0

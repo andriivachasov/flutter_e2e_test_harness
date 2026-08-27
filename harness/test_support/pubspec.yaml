@@ -1,0 +1,12 @@
+name: e2e_test_support
+description: >-
+  App-side support for the e2e harness: test context, sync client.
+  Pure Dart, zero dependencies — this is what a target app imports.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+dev_dependencies:
+  test: ^1.25.0

@@ -1,0 +1,27 @@
+{
+  "auditId": "audit_2026-08-27T1318",
+  "finishedAt": "2026-08-27T11:20:45.229840Z",
+  "runCount": 2,
+  "meta": {
+    "host": "Andriis-MacBook-Pro.local",
+    "firebaseMode": "emulator",
+    "selection": "smoke_sign_in"
+  },
+  "phases": {
+    "runP50Ms": 62794,
+    "runP95Ms": 68224
+  },
+  "tests": [
+    {
+      "name": "smoke_sign_in",
+      "runs": 2,
+      "passed": 2,
+      "passRate": 1.0,
+      "verdict": "stable",
+      "quarantined": false,
+      "p50Ms": 56058,
+      "p95Ms": 61726,
+      "topCluster": null
+    }
+  ]
+}

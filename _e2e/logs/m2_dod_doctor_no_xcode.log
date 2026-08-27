@@ -1,0 +1,29 @@
+=== e2e doctor with xcrun shadowed
+[ok  ] dart
+[ok  ] flutter
+[ok  ] patrol_cli
+[ok  ] firebase CLI (Auth emulator)
+[FAIL] xcrun simctl (Xcode) — not runnable (exit 72: xcrun simctl help)
+       fix: install Xcode from the App Store, then: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer && sudo xcodebuild -runFirstLaunch && xcodebuild -downloadPlatform iOS
+[skip] iOS simulator "iPhone 16" — needs Xcode (above)
+[ok  ] cocoapods
+[ok  ] adb
+[ok  ] Android AVD "e2e_pixel"
+[ok  ] Android emulator GPU mode
+[warn] no leftover harness processes — backend (pid 58772)
+       fix: kill them (kill <pid>) unless another run is in progress; a previous run may have been interrupted
+[ok  ] app platform folders
+[ok  ] app dependencies resolved
+[ok  ] backend dependencies resolved
+[info] config sources: /Users/a_vachasov/dev/claude_projects/e2e_test_harness/e2e.yaml  <  /Users/a_vachasov/dev/claude_projects/e2e_test_harness/e2e.local.yaml
+[info] firebase: mode=emulator project=demo-e2e-harness provisioner=ephemeral
+[ok  ] firebase configuration
+[ok  ] app-side sign-in credentials (Web API key)
+[ok  ] seed profiles
+[ok  ] secrets are gitignored
+[ok  ] test manifest
+
+doctor: 1 required check(s) failed
+=== asserting
+
+DOD OK: doctor without Xcode exits 1 and names the exact install steps

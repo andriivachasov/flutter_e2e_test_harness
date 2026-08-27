@@ -1,0 +1,64 @@
+[2026-08-27T12:32:43.804537] run 2026-08-27T1232_800 (seq 16) → /Users/a_vachasov/dev/claude_projects/e2e_test_harness/runs/2026-08-27T1232_800
+[2026-08-27T12:32:43.807176] tests: smoke_sign_in, single_user_notes, returning_user, cross_user_chat, seeded_notes_reset, flaky_demo
+[2026-08-27T12:32:43.807791] firebase: {mode: real, projectId: fire…<redacted>, apiKey: <set>, authEmulatorPort: 0} pool: <scope>-<role>@e2e.example.com
+[2026-08-27T12:32:43.807888] using real Firebase project fire…<redacted>
+[2026-08-27T12:32:43.812293] starting backend on port 60206
+[2026-08-27T12:32:44.478640] sync server on port 60210
+[2026-08-27T12:32:44.479858] booting devices: ios, android
+[2026-08-27T12:32:44.527505] ready: android:e2e_pixel(emulator-5554) (46 ms)
+[2026-08-27T12:32:44.671161] ready: ios:iPhone 16(07F94C82-4E7C-4B05-9076-C33B80D14E0B) (191 ms)
+[2026-08-27T12:32:44.689620] scheduling smoke_sign_in on A=android:e2e_pixel(emulator-5554)
+[2026-08-27T12:32:44.690726] === test smoke_sign_in ===
+[2026-08-27T12:32:44.690903] scheduling single_user_notes on A=ios:iPhone 16(07F94C82-4E7C-4B05-9076-C33B80D14E0B)
+[2026-08-27T12:32:44.690926] === test single_user_notes ===
+[2026-08-27T12:32:44.692225] smoke_sign_in/A: user smoke-sign-in-a@e2e.example.com
+[2026-08-27T12:32:44.697318] single_user_notes/A: user single-user-notes-a@e2e.example.com
+[2026-08-27T12:32:44.964372] launching single_user_notes role=A on ios:iPhone 16(07F94C82-4E7C-4B05-9076-C33B80D14E0B) (patrol ports 60238/60239)
+[2026-08-27T12:32:45.302545] launching smoke_sign_in role=A on android:e2e_pixel(emulator-5554) (patrol ports 60248/60249)
+[2026-08-27T12:33:19.525412] screenshot single_user_notes/A: 01_no-notes.png
+[2026-08-27T12:33:20.914323] screenshot single_user_notes/A: 02_two-notes.png
+[2026-08-27T12:33:21.985547] test single_user_notes: PASS
+[2026-08-27T12:33:22.217182] scheduling returning_user on A=ios:iPhone 16(07F94C82-4E7C-4B05-9076-C33B80D14E0B)
+[2026-08-27T12:33:22.217248] === test returning_user ===
+[2026-08-27T12:33:22.218239] returning_user/A: user returning-user-a@e2e.example.com
+[2026-08-27T12:33:23.694750] launching returning_user role=A on ios:iPhone 16(07F94C82-4E7C-4B05-9076-C33B80D14E0B) (patrol ports 60570/60571)
+[2026-08-27T12:33:45.627325] screenshot smoke_sign_in/A: 01_auth-page.png
+[2026-08-27T12:33:58.013684] screenshot returning_user/A: 01_first-continue-registered.png
+[2026-08-27T12:33:58.445920] screenshot returning_user/A: 02_signed-out.png
+[2026-08-27T12:33:59.159677] screenshot returning_user/A: 03_second-continue.png
+[2026-08-27T12:34:00.710308] test returning_user: PASS
+[2026-08-27T12:34:01.206184] scheduling seeded_notes_reset on A=ios:iPhone 16(07F94C82-4E7C-4B05-9076-C33B80D14E0B)
+[2026-08-27T12:34:01.206388] === test seeded_notes_reset ===
+[2026-08-27T12:34:01.213216] seeded_notes_reset/A: user seeded-notes-reset-a@e2e.example.com seeded with "user-with-history"
+[2026-08-27T12:34:01.511016] launching seeded_notes_reset role=A on ios:iPhone 16(07F94C82-4E7C-4B05-9076-C33B80D14E0B) (patrol ports 60698/60699)
+[2026-08-27T12:34:04.193131] screenshot smoke_sign_in/A: 02_home.png
+[2026-08-27T12:34:08.657897] test smoke_sign_in: PASS
+[2026-08-27T12:34:11.090744] scheduling flaky_demo on A=android:e2e_pixel(emulator-5554)
+[2026-08-27T12:34:11.090800] === test flaky_demo ===
+[2026-08-27T12:34:11.091708] flaky_demo/A: user flaky-demo-a@e2e.example.com
+[2026-08-27T12:34:14.861540] launching flaky_demo role=A on android:e2e_pixel(emulator-5554) (patrol ports 60806/60808)
+[2026-08-27T12:34:36.596384] screenshot seeded_notes_reset/A: 01_seeded.png
+[2026-08-27T12:34:36.603398] account reset seeded_notes_reset/A (mid-test)
+[2026-08-27T12:34:37.604356] screenshot seeded_notes_reset/A: 02_after-reset.png
+[2026-08-27T12:34:37.610209] seeded seeded_notes_reset/A with "user-with-history" (mid-test)
+[2026-08-27T12:34:38.806712] screenshot seeded_notes_reset/A: 03_re-seeded.png
+[2026-08-27T12:34:40.579171] test seeded_notes_reset: PASS
+[2026-08-27T12:35:06.696551] screenshot flaky_demo/A: 01_before-assertion.png
+[2026-08-27T12:35:10.859524] test flaky_demo: PASS
+[2026-08-27T12:35:13.572298] scheduling cross_user_chat on A=ios:iPhone 16(07F94C82-4E7C-4B05-9076-C33B80D14E0B), B=android:e2e_pixel(emulator-5554)
+[2026-08-27T12:35:13.572419] === test cross_user_chat ===
+[2026-08-27T12:35:13.574179] cross_user_chat/A: user chat-a@e2e.example.com
+[2026-08-27T12:35:13.575460] cross_user_chat/B: user chat-b@e2e.example.com
+[2026-08-27T12:35:15.244195] launching cross_user_chat role=A on ios:iPhone 16(07F94C82-4E7C-4B05-9076-C33B80D14E0B) (patrol ports 61286/61287)
+[2026-08-27T12:35:15.244606] launching cross_user_chat role=B on android:e2e_pixel(emulator-5554) (patrol ports 61288/61289)
+[2026-08-27T12:35:51.708906] screenshot cross_user_chat/A: 01_signed-in.png
+[2026-08-27T12:36:23.686332] screenshot cross_user_chat/B: 01_signed-in.png
+[2026-08-27T12:36:28.040941] screenshot cross_user_chat/A: 02_chat-open.png
+[2026-08-27T12:36:28.541801] screenshot cross_user_chat/A: 03_sent.png
+[2026-08-27T12:36:31.033661] screenshot cross_user_chat/B: 02_chat-open.png
+[2026-08-27T12:36:33.236128] screenshot cross_user_chat/B: 03_received.png
+[2026-08-27T12:36:33.785745] screenshot cross_user_chat/A: 04_reply-received.png
+[2026-08-27T12:36:34.718091] screenshot cross_user_chat/B: 04_replied.png
+[2026-08-27T12:36:40.439549] test cross_user_chat: PASS
+[2026-08-27T12:36:43.410752] summary: /Users/a_vachasov/dev/claude_projects/e2e_test_harness/runs/2026-08-27T1232_800/summary.html
+[2026-08-27T12:36:43.410855] result: 6/6 passed, exit 0

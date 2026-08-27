@@ -1,0 +1,21 @@
+=== precondition: slot 1 not held by a live run
+slot 1  e2e-pool-1@e2e.example.com  uid CjLYZLtMKmfz24dYU4wuyktzTQ93  lease: held by 2026-08-26T1502_509 (Andriis-MacBook-Pro.local pid 43187) until 2026-08-26T13:18:04.956536Z — STALE, reclaimable
+
+=== run 1: lease slot 1, then SIGKILL the orchestrator
+orchestrator killed (pid 58435) — leaving its lease behind
+
+=== pool state right after the crash (must be held, not yet stale)
+slot 1  e2e-pool-1@e2e.example.com  uid CjLYZLtMKmfz24dYU4wuyktzTQ93  lease: held by 2026-08-26T1528_239 (Andriis-MacBook-Pro.local pid 58435) until 2026-08-26T13:29:12.780811Z
+
+=== run 2: must wait out the TTL, reclaim slot 1 and pass
+[2026-08-26T15:30:09.168578] test smoke_sign_in: PASS
+[2026-08-26T15:30:12.658955] summary: /Users/a_vachasov/dev/claude_projects/e2e_test_harness/runs/2026-08-26T1528_481/summary.html
+[2026-08-26T15:30:12.659083] result: 1/1 passed, exit 0
+reclaimed at 2026-08-26T15:29:16.115895 (lease taken at 15:28:30, TTL 45 s)
+run 2 passed on pool slot 1: e2e-pool-1@e2e.example.com
+
+=== pool state after run 2 (slot 1 must be free)
+slot 1  e2e-pool-1@e2e.example.com  uid CjLYZLtMKmfz24dYU4wuyktzTQ93  lease: free
+
+DOD OK: crashed run's lease expired after the TTL, was reclaimed by the next run, pool is free
+DOD_EXIT=0

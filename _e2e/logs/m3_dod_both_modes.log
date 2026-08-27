@@ -1,0 +1,17 @@
+
+=== emulator: e2e run (E2E_FIREBASE_MODE=emulator)
+[2026-08-27T12:32:43.124655] WARN: quarantined test flaky_demo failed (tag "quarantine"): not counted against the run
+[2026-08-27T12:32:43.174200] summary: /Users/a_vachasov/dev/claude_projects/e2e_test_harness/runs/2026-08-27T1229_435/summary.html
+[2026-08-27T12:32:43.174261] result: 5/6 passed, exit 0
+emulator: 5/6 passed (1 quarantined failure(s)), provisioner=pool, users per role present, secrets redacted
+emulator OK: /Users/a_vachasov/dev/claude_projects/e2e_test_harness/runs/2026-08-27T1229_435
+
+=== real: e2e run (E2E_FIREBASE_MODE=real)
+[2026-08-27T12:36:40.439549] test cross_user_chat: PASS
+[2026-08-27T12:36:43.410752] summary: /Users/a_vachasov/dev/claude_projects/e2e_test_harness/runs/2026-08-27T1232_800/summary.html
+[2026-08-27T12:36:43.410855] result: 6/6 passed, exit 0
+real: 6/6 passed (0 quarantined failure(s)), provisioner=pool, users per role present, secrets redacted
+real OK: /Users/a_vachasov/dev/claude_projects/e2e_test_harness/runs/2026-08-27T1232_800
+
+DOD OK: all R21 tests pass in emulator and real mode with the fixed user pool
+DOD_EXIT=0

@@ -1,0 +1,15 @@
+[2026-08-26T15:28:24.241288] run 2026-08-26T1528_239 → /Users/a_vachasov/dev/claude_projects/e2e_test_harness/runs/2026-08-26T1528_239
+[2026-08-26T15:28:24.243390] tests: smoke_sign_in
+[2026-08-26T15:28:24.243910] firebase: {mode: real, projectId: fire…<redacted>, apiKey: null, serviceAccountKeyPath: <set>, authEmulatorPort: 0} provisioner: pooled
+[2026-08-26T15:28:24.243990] using real Firebase project fire…<redacted>
+[2026-08-26T15:28:25.648954] web API key discovered from a registered app
+[2026-08-26T15:28:25.652052] starting backend on port 51345
+[2026-08-26T15:28:26.316230] sync server on port 51349
+[2026-08-26T15:28:26.574777] provisioner pooled ready
+[2026-08-26T15:28:26.577053] booting devices: ios, android
+[2026-08-26T15:28:26.648736] ready: android:e2e_pixel(emulator-5554) (69 ms)
+[2026-08-26T15:28:26.781783] ready: ios:iPhone 16(07F94C82-4E7C-4B05-9076-C33B80D14E0B) (204 ms)
+[2026-08-26T15:28:26.783768] scheduling smoke_sign_in on A=android:e2e_pixel(emulator-5554)
+[2026-08-26T15:28:26.784342] === test smoke_sign_in ===
+[2026-08-26T15:28:27.304978] pool: reclaiming stale lease on slot 1 (owner 2026-08-26T1502_509, expired 2026-08-26T13:18:04.956536Z)
+[2026-08-26T15:28:30.584901] smoke_sign_in/A: user e2e-pool-1@e2e.example.com

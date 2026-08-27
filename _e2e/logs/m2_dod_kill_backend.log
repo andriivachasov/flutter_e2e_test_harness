@@ -1,0 +1,19 @@
+=== starting run
+run dir: /Users/a_vachasov/dev/claude_projects/e2e_test_harness/runs/2026-08-26T1535_318
+=== waiting for both apps to be on screen (home-visible screenshots)
+=== killing backend pid 67668
+=== waiting for the run to finish (limit 420s)
+run exit: 2, 141s after the kill
+[2026-08-26T15:36:48.248288] screenshot cross_user_chat/A: 02_chat-open.png
+[2026-08-26T15:36:50.575643] screenshot cross_user_chat/B: 02_chat-open.png
+[2026-08-26T15:37:48.784237] screenshot cross_user_chat/A: 03_failure.png
+[2026-08-26T15:38:51.883242] screenshot cross_user_chat/B: 03_failure.png
+[2026-08-26T15:38:57.051406] test cross_user_chat: INFRA
+[2026-08-26T15:39:05.001530] summary: /Users/a_vachasov/dev/claude_projects/e2e_test_harness/runs/2026-08-26T1535_318/summary.html
+[2026-08-26T15:39:05.001612] result: 0/1 passed, exit 2
+RUN_EXIT=2
+=== asserting
+bundle complete; infraError = backend exited unexpectedly with code -9 (see backend.log)
+
+DOD OK: backend kill → exit 2 in 141s with a complete bundle at /Users/a_vachasov/dev/claude_projects/e2e_test_harness/runs/2026-08-26T1535_318
+DOD_EXIT=0
