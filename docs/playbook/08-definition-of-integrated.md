@@ -38,4 +38,9 @@ Not machine-checkable, verify by reading:
 cd harness/orchestrator && dart run bin/e2e.dart run && dart run bin/e2e.dart run
 ```
 
-Both exit 0. Keep the second run's `runs/<id>/summary.html` as evidence.
+Both exit 0. Keep the second run's `runs/<id>/summary.html` as evidence —
+pass `--keep-all` on that second run if you want it to survive retention
+pruning (`run.keep_runs`, step 07).
+
+Integrated. Later, when the reference repo has moved on:
+[09-upgrading.md](09-upgrading.md).

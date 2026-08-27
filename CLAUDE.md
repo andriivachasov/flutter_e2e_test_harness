@@ -133,6 +133,27 @@ Android video capped at 180 s by screenrecord; Android `app.log` is
 unfiltered logcat; `appLaunchMs` folds build+install+launch into one number (Patrol builds
 inside `patrol test`, so install is not separable without prebuild).
 
+## Versioning and releases (D25, R24)
+
+The harness is semver-versioned in `harness/VERSION` (inside the vendored
+tree, so an integrated app carries its version; **absent == 1.0.0**), with
+one `CHANGELOG.md` section per version, each carrying a **Migration**
+subsection written even when it is empty. Current version: **1.0.0**
+(baseline = everything through M5).
+
+- Work lands on `dev`: every change bumps `VERSION`, adds its changelog
+  section **in the same commit**, and is tagged `v<version>`.
+- `dev` → `main` is a **plain merge** — no bump, no changelog edit, no
+  ritual. `main` may advance several versions at once.
+- Integrators upgrade by walking every intervening version's migration in
+  order (1.0 → 1.1 → 1.2 …), never a single jump.
+- Maintainer procedure: `docs/releasing.md`. Integrator procedure:
+  `docs/playbook/09-upgrading.md`.
+
+Field-report findings from a real integration (JVM backend, existing Patrol
+suite, worktrees) are filed as issues #1–#11 on the GitHub repo; #1, #2, #3
+and #7 are the high-severity ones and none are fixed yet.
+
 ## Local config (added for M3, simplified by D23)
 
 `e2e.yaml` is committed and project-neutral. Machine-local values go in

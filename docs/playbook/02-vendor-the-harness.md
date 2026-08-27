@@ -20,7 +20,8 @@ From `<REF>`, into the target repository root (`<TARGET>`):
 
 ```sh
 mkdir -p <TARGET>/harness
-cp -R <REF>/harness/orchestrator <REF>/harness/test_support <REF>/harness/tools <TARGET>/harness/
+cp -R <REF>/harness/orchestrator <REF>/harness/test_support \
+      <REF>/harness/tools <REF>/harness/VERSION <TARGET>/harness/
 rm -rf <TARGET>/harness/orchestrator/.dart_tool <TARGET>/harness/test_support/.dart_tool
 (cd <TARGET>/harness/orchestrator && dart pub get)
 (cd <TARGET>/harness/test_support && dart pub get)
@@ -34,10 +35,18 @@ checked out. Record the commit you vendored from (`git -C <REF> rev-parse
 HEAD`) in `<TARGET>`'s `e2e.yaml` as a comment, so re-vendoring later is a
 diff against a known point, not a guess.
 
-To pull in a later harness update, repeat the clone with a newer ref and
-diff `<REF>/harness` against `<TARGET>/harness` before overwriting —
-the target may have app-specific edits (e.g. `harness/tools` scripts
-tweaked for this app's package name).
+`harness/VERSION` is what the copy is: the harness is versioned
+(semver), and that file travels with it so this repo always knows which
+version it integrated. Do not edit it by hand — it changes when you
+upgrade, and only then.
+
+To pull in a later harness update, follow
+[09-upgrading.md](09-upgrading.md): it walks `CHANGELOG.md` from your
+`harness/VERSION` to the new one and applies each version's migration in
+order. Do not just overwrite `<TARGET>/harness` — the target may have
+app-specific edits (e.g. `harness/tools` scripts tweaked for this app's
+package name), and a version you skip over may have needed a change to
+`e2e.yaml`, your backend or your tests that no file copy performs.
 
 `harness/orchestrator` is the CLI; `harness/test_support` is what your
 tests import (pure Dart, `dart:io` only — it never pulls Flutter or Patrol

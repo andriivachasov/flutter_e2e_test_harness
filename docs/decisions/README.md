@@ -28,3 +28,4 @@ One file per decision, imported from `refined_requirements.md` §2 (the source o
 | [ADR-022](adr-022-playbook-verification-protocol.md) | Playbook verification protocol (2026-08-26, M5) |
 | [ADR-023](adr-023-admin-free-fixed-user-pool.md) | Admin-free fixed user pool (2026-08-27; supersedes D12, D17, amends D11/D14) |
 | [ADR-024](adr-024-artifact-retention-and-audit-memory.md) | Artifact retention and audit memory (2026-08-27) |
+| [ADR-025](adr-025-release-strategy-and-versioned-migrations.md) | Release strategy and versioned migrations (2026-08-27) |

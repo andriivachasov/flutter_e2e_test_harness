@@ -10,8 +10,10 @@ are welcome.
 | you are integrating the harness into an app | [playbook/00-overview.md](playbook/00-overview.md) — then follow the numbered steps |
 | you want to know whether an integration is complete | [playbook/08-definition-of-integrated.md](playbook/08-definition-of-integrated.md) + `bash harness/tools/check_integration.sh` |
 | a test needs to wait for something, coordinate two devices, seed data, reset state | [patterns/](patterns/README.md) |
-| you want to know *why* the harness is shaped like this | [decisions/](decisions/README.md) (ADR-001 … ADR-020) |
+| you want to know *why* the harness is shaped like this | [decisions/](decisions/README.md) (ADR-001 … ADR-025) |
 | something is red | [troubleshooting.md](troubleshooting.md) |
+| you already integrated the harness and want a newer version of it | [playbook/09-upgrading.md](playbook/09-upgrading.md) + [../CHANGELOG.md](../CHANGELOG.md) |
+| you maintain the reference repo and are cutting a version | [releasing.md](releasing.md) |
 
 ## The one-paragraph version
 
@@ -44,4 +46,6 @@ harness/tools/          patrol_bootstrap.sh, check_integration.sh (vendor this)
 example/app|backend|seeds   the reference app — copy pieces as templates
 e2e.yaml                harness configuration (one per repo, at the root)
 docs/                   this documentation
+harness/VERSION         the harness version (vendor this; absent == 1.0.0)
+CHANGELOG.md            one section per version, each with a Migration subsection
 ```
