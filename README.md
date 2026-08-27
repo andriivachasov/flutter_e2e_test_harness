@@ -8,6 +8,17 @@ playbook (`docs/playbook/00-overview.md` → `08-definition-of-integrated.md`),
 patterns, ADRs and troubleshooting; `harness/tools/patrol_bootstrap.sh` and
 `harness/tools/check_integration.sh` do the mechanical parts.
 
+This repo (`git@github.com:andriivachasov/flutter_e2e_test_harness.git`) is
+the **reference repository**: a separate app repo doesn't depend on it at
+build time — an agent clones it, copies `harness/` (and, for convenience,
+`docs/`) into the target repo, and follows the playbook from there. See
+[playbook/02-vendor-the-harness.md §2.1](docs/playbook/02-vendor-the-harness.md)
+for the exact clone/copy commands. Quick version:
+
+```sh
+git clone --depth 1 git@github.com:andriivachasov/flutter_e2e_test_harness.git /tmp/flutter_e2e_test_harness
+```
+
 ## Layout
 
 | Path | What |

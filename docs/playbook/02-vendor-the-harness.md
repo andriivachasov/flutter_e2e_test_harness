@@ -2,8 +2,21 @@
 
 ## 2.1 Copy the harness into the target repository
 
-From the reference repository (`<REF>`), into the target repository root
-(`<TARGET>`):
+The reference repository is
+[`git@github.com:andriivachasov/flutter_e2e_test_harness.git`](https://github.com/andriivachasov/flutter_e2e_test_harness)
+(`<REF>` below). Clone it somewhere scratch — it is a *source* you copy
+files out of, not a dependency the target repo builds against, and it is
+never added as a submodule or remote of the target repo.
+
+```sh
+REF=/tmp/flutter_e2e_test_harness
+rm -rf "$REF"
+git clone --depth 1 git@github.com:andriivachasov/flutter_e2e_test_harness.git "$REF"
+# pin to a known-good tag/commit instead of the branch tip if one exists:
+# git clone --depth 1 --branch <tag> git@github.com:andriivachasov/flutter_e2e_test_harness.git "$REF"
+```
+
+From `<REF>`, into the target repository root (`<TARGET>`):
 
 ```sh
 mkdir -p <TARGET>/harness
@@ -13,6 +26,18 @@ rm -rf <TARGET>/harness/orchestrator/.dart_tool <TARGET>/harness/test_support/.d
 (cd <TARGET>/harness/test_support && dart pub get)
 ```
 (Run these under `bash`; zsh aborts a chain on an unmatched glob.)
+
+Also copy `<REF>/docs` into `<TARGET>/docs/e2e-harness` (or wherever fits)
+so the playbook, patterns and troubleshooting guide travel with the code —
+future agents (and humans) working in `<TARGET>` won't have `<REF>`
+checked out. Record the commit you vendored from (`git -C <REF> rev-parse
+HEAD`) in `<TARGET>`'s `e2e.yaml` as a comment, so re-vendoring later is a
+diff against a known point, not a guess.
+
+To pull in a later harness update, repeat the clone with a newer ref and
+diff `<REF>/harness` against `<TARGET>/harness` before overwriting —
+the target may have app-specific edits (e.g. `harness/tools` scripts
+tweaked for this app's package name).
 
 `harness/orchestrator` is the CLI; `harness/test_support` is what your
 tests import (pure Dart, `dart:io` only — it never pulls Flutter or Patrol

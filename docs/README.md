@@ -29,6 +29,14 @@ manifest, written as plain Dart functions, and never sleep.
 
 ## Layout of the reference repository
 
+The reference repository lives at
+`git@github.com:andriivachasov/flutter_e2e_test_harness.git`
+(https://github.com/andriivachasov/flutter_e2e_test_harness). Clone it and
+copy pieces out of it into the app repo you're integrating — see
+[playbook/02-vendor-the-harness.md](playbook/02-vendor-the-harness.md) §2.1
+for the exact commands. It is never a git submodule, subtree, or remote of
+the target repo; treat it purely as a source to copy from.
+
 ```
 harness/orchestrator/   the e2e CLI (vendor this)
 harness/test_support/   TestContext + SyncClient for your tests (vendor this)
