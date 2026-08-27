@@ -154,7 +154,7 @@ one `CHANGELOG.md` section per version, each carrying a **Migration**
 subsection written even when it is empty. Current version: **1.2.2**
 (1.0.0 = baseline, everything through M5; 1.1.0 = fail-fast across roles;
 1.1.1 = README update prompt; 1.2.0 = field-report fixes #1/#2/#3/#4/#7; 1.2.1, 1.2.2 = review fixes to 1.2.0).
-`dev` is at 1.2.2; `main` is at 1.1.1.
+`main` and `dev` are both at 1.2.2.
 
 - Work lands on `dev`: every change bumps `VERSION`, adds its changelog
   section **in the same commit**, and is tagged `v<version>`.
@@ -172,10 +172,12 @@ SwiftPM refs), #3 (doctor checks google-services.json /
 GoogleService-Info.plist), #4 (`backend.port_flag`), #7 (`/test/*` is
 loopback-only; `backend.test_header` as an optional shared secret). #12
 (fail-fast) is done in 1.1.0; #10's `--keep-all` item is done. Still open:
-#5, #6, #8, #9, #10 (rest), #11, and #14 (concurrent roles race on shared
-Flutter build state — filed 2026-08-27 from a kynt/relcoach run; the
-suggested fix is to serialize the native build phase, which overlaps the
-`executor.prebuild` backlog item).
+#5, #6, #8, #9, #10 (rest), #11, #14 (concurrent roles race on shared Flutter
+build state — filed 2026-08-27 from a kynt/relcoach run; the suggested fix is
+to serialize the native build phase, which overlaps the `executor.prebuild`
+backlog item) and #15 (leftover findings from the 1.2.0 review: M3 numeric
+coercion of secret env overrides, M4 `test_header` unenforced by the reference
+backend, M5 whitespace in a string `port_flag`, plus L-level nits).
 
 ## Local config (added for M3, simplified by D23)
 
