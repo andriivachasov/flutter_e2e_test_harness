@@ -4,6 +4,10 @@ Not part of a first integration — steps 00–08 cover that. Come here when the
 harness in your repo is older than the reference repository and you want the
 newer one.
 
+Handing this to an agent? The reference repo's `README.md` has a
+copy-pasteable **Update prompt** that drives this whole file; it works
+without being told which version the app is on.
+
 ## 9.1 Find the version you are on
 
 ```sh

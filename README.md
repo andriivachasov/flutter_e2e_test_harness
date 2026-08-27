@@ -56,6 +56,39 @@ code (e.g. whether there's a real Firebase project to test against, or
 whether CI is GPU-less) before making assumptions.
 ```
 
+## Update prompt
+
+For a repo that already has the harness and wants a newer version of it.
+Paste into an agent running **inside that app repo** — it works out which
+version the app is on by itself.
+
+```
+Update the vendored e2e test harness in this repo to the latest version of
+git@github.com:andriivachasov/flutter_e2e_test_harness.git.
+
+Clone it to a scratch directory and follow
+<clone>/docs/playbook/09-upgrading.md. What that file expands on:
+
+- This repo's version is in harness/VERSION. No such file means 1.0.0 —
+  that is the definition, not a guess.
+- Read <clone>/CHANGELOG.md and list every version between this repo's and
+  <clone>/harness/VERSION. Show me that list before changing anything.
+- Re-vendor harness/{orchestrator,test_support,tools,VERSION} together,
+  and copy <clone>/docs over the vendored docs copy. Diff before
+  overwriting — this repo may have app-specific edits inside harness/;
+  tell me before dropping any.
+- Apply each crossed version's Migration section IN ORDER, oldest first.
+  Never jump straight to the newest: later steps assume earlier ones ran.
+  Versions with an empty Migration still count as crossed.
+- Verify: e2e doctor, bash harness/tools/check_integration.sh, then e2e run
+  twice — both exit 0. A failure during BUILD is an environment problem
+  rather than a migration one, even though it lands in test.log looking
+  like a test failure.
+
+Report the version this repo was on, the version it is on now, every
+version crossed, and what you changed for each.
+```
+
 ## Layout
 
 | Path | What |

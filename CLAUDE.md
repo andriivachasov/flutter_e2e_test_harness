@@ -150,8 +150,9 @@ inside `patrol test`, so install is not separable without prebuild).
 The harness is semver-versioned in `harness/VERSION` (inside the vendored
 tree, so an integrated app carries its version; **absent == 1.0.0**), with
 one `CHANGELOG.md` section per version, each carrying a **Migration**
-subsection written even when it is empty. Current version: **1.1.0**
-(1.0.0 = baseline, everything through M5; 1.1.0 = fail-fast across roles).
+subsection written even when it is empty. Current version: **1.1.1**
+(1.0.0 = baseline, everything through M5; 1.1.0 = fail-fast across roles;
+1.1.1 = README update prompt). `main` and `dev` are both at 1.1.1.
 
 - Work lands on `dev`: every change bumps `VERSION`, adds its changelog
   section **in the same commit**, and is tagged `v<version>`.

@@ -28,6 +28,22 @@ section is how a required step goes missing.
 
 ---
 
+## 1.1.1 — 2026-08-27
+
+Documentation only. Adds a copy-pasteable **Update prompt** to the reference
+repo's `README.md`, next to the existing bootstrap prompt, for handing an
+upgrade to an agent working inside an app that already has the harness. It
+does not need to be told which version the app is on — it derives that from
+`harness/VERSION` (absent = 1.0.0) and walks this changelog from there.
+`playbook/09-upgrading.md` points back at it.
+
+### Migration
+
+None — nothing in `harness/` changed. Re-vendor only if you want the
+refreshed docs.
+
+---
+
 ## 1.1.0 — 2026-08-27
 
 Multi-role tests now fail as soon as one role fails. Previously a partner
