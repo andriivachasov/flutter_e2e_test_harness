@@ -93,11 +93,15 @@ devices:
 backend:
   dir: backend                 # <-- where the backend lives (relative to this file)
   command: ["dart", "run", "bin/server.dart"]   # <-- how to start it; [] = no backend
+  port_flag: ["--port", "{port}"]  # <-- how the run's port is passed ({port} is required);
+                                   #     e.g. "--server.port={port}" for Spring Boot
   health_path: /health
   start_timeout_seconds: 60
   seed_path: /test/seed
   reset_user_path: /test/reset/user
   reset_path: /test/reset
+  # test_header: optional shared secret for /test/* — see step 03 §3.2;
+  # it is a secret, so it goes in e2e.local.yaml, not here
 
 seeds:
   dir: seeds                   # <name>.json profiles; may not exist if unused
@@ -135,9 +139,11 @@ Notes:
   `patrol` ^4.9 in the app, `patrol_cli` 4.6.x on PATH. `pub add` may
   resolve a newer minor; that is fine as long as `patrol_cli` and `patrol`
   are both 4.x.
-- The harness appends `--port <n>` to `backend.command` and expects
-  `GET <health_path>` to answer 200 (step 03). With `command: []` it starts
-  nothing and passes no `E2E_BACKEND_URL` to the app.
+- The harness appends `backend.port_flag` (default `["--port", "{port}"]`,
+  a template — `"--server.port={port}"`, `["-p", "{port}"]`, … see step 03)
+  to `backend.command` and expects `GET <health_path>` to answer 200 (step
+  03). With `command: []` it starts nothing and passes no `E2E_BACKEND_URL`
+  to the app.
 - Machine-local values go in `e2e.local.yaml` next to it (deep-merged
   over `e2e.yaml`, gitignored); `E2E_*` environment variables override
   both (`E2E_FIREBASE_MODE`, `E2E_FIREBASE_API_KEY`, `E2E_POOL_PASSWORD`,

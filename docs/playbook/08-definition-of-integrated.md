@@ -14,15 +14,16 @@ any failure. An integration is complete when the checker passes **and**
 |---|---|---|
 | 1 | `e2e.yaml` at the repo root; `harness/orchestrator`, `harness/test_support` vendored | file presence |
 | 2 | `app.dir` exists; app depends on `patrol` and `e2e_test_support`; pubspec has a `patrol:` section | pubspec grep |
-| 3 | Android: `PatrolJUnitRunner` in gradle, `MainActivityTest.java` present | file/grep |
-| 4 | iOS: `RunnerUITests.m`, `RunnerUITests` target in `Runner.xcodeproj`, Podfile block | file/grep |
-| 5 | App reads `E2E_*` dart-defines and sends `X-E2E-Test-Id` | `lib/` grep |
-| 6 | App uses stable widget keys | `lib/` grep for `Key(`/`ValueKey(`/`Semantics(` |
-| 7 | Manifest present with ≥ 1 `smoke`, ≥ 1 `single-user`, ≥ 1 `multi-user` test | manifest grep |
-| 8 | Tests use `sync.guard` and `sync.step`; no `sleep()`/`Future.delayed` outside comments | `integration_test/` grep |
-| 9 | Backend (if any): `E2E_TEST_MODE` gate and `X-E2E-Test-Id` logging present | `backend.dir` grep |
-| 10 | `runs/` and `e2e.local.yaml` gitignored | `.gitignore` grep |
-| 11 | `e2e list` parses the manifest; `e2e doctor` passes | runs both |
+| 3 | Android: `PatrolJUnitRunner` in gradle and in an `androidTest/` entry point (`.java` or `.kt`) | file/grep |
+| 4 | iOS: a `RunnerUITests` entry point (`.m` or `.swift`), `RunnerUITests` target in `Runner.xcodeproj`, Podfile block | file/grep |
+| 5 | Firebase config files present when the build consumes them: `android/app/google-services.json` (gradle applies `google-services`), `ios/Runner/GoogleService-Info.plist` (referenced by the xcodeproj, macOS only) | file presence |
+| 6 | App reads `E2E_*` dart-defines and sends `X-E2E-Test-Id` | `lib/` grep |
+| 7 | App uses stable widget keys | `lib/` grep for `Key(`/`ValueKey(`/`Semantics(` |
+| 8 | Manifest present with ≥ 1 `smoke`, ≥ 1 `single-user`, ≥ 1 `multi-user` test | manifest grep |
+| 9 | Tests use `sync.guard` and `sync.step`; no `sleep()`/`Future.delayed` outside comments | `integration_test/` grep |
+| 10 | Backend (if any): `E2E_TEST_MODE` gate and `X-E2E-Test-Id` logging present | `backend.dir` grep |
+| 11 | `runs/` and `e2e.local.yaml` gitignored | `.gitignore` grep |
+| 12 | `e2e list` parses the manifest; `e2e doctor` passes | runs both |
 
 Not machine-checkable, verify by reading:
 
@@ -31,6 +32,11 @@ Not machine-checkable, verify by reading:
 - The first multi-user barrier has a ≥ 10 min timeout; a `done` barrier
   ends every multi-user test.
 - Secrets (service-account key, `e2e.local.yaml`) never appear in a diff.
+- The `/test/*` surface is locked, not merely flagged: the test backend
+  binds to loopback and refuses non-loopback callers, failing closed
+  (playbook 03 §3.2). `E2E_TEST_MODE` alone is an enable flag, not
+  authentication. A backend that must listen off-host sends the
+  `backend.test_header` secret instead.
 
 ## Acceptance run
 

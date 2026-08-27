@@ -200,6 +200,9 @@ $groups// END: GENERATED TEST GROUPS
     final secretValues = [
       for (final key in secretDefines)
         if ((defines[key] ?? '').isNotEmpty) defines[key]!,
+      // The `/test/*` shared secret never becomes a define, but scrub it
+      // too: it must not survive in test.log by any route (issue #7).
+      ...config.backendTestHeaders.secretValues,
     ];
     String redact(String line) {
       var out = line;

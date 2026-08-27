@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:shelf/shelf.dart';
 
@@ -87,6 +88,35 @@ class ApiState {
   }
 }
 
+/// Rejects `/test/*` requests that did not come from this host (issue #7).
+///
+/// `E2E_TEST_MODE=1` only *enables* the surface; it is not an authentication
+/// factor, and `/test/*` deletes arbitrary user data and must work before an
+/// account exists, so it cannot be authenticated the normal way. Loopback is
+/// the lock: the harness always calls this surface from the same host, so a
+/// non-loopback caller is by definition not the harness.
+///
+/// Fails CLOSED — an address that is absent (no connection info) or does not
+/// parse is refused, not allowed. Pair it with a loopback bind
+/// (`bin/server.dart` binds `127.0.0.1`); the filter is what still holds if
+/// someone changes the bind address.
+///
+/// [prefix] must match `backend.seed_path` / `reset_path` / `reset_user_path`
+/// if those are moved off `/test/`.
+Middleware loopbackOnly({String prefix = '/test/'}) => (inner) => (req) async {
+      if (!'/${req.url.path}'.startsWith(prefix)) return inner(req);
+      final info = req.context['shelf.io.connection_info'];
+      final remote = info is HttpConnectionInfo ? info.remoteAddress : null;
+      if (remote == null || !remote.isLoopback) {
+        return Response(
+          403,
+          body: jsonEncode({'error': 'test endpoints are loopback-only'}),
+          headers: {'content-type': 'application/json'},
+        );
+      }
+      return inner(req);
+    };
+
 /// Builds the API handler.
 ///
 /// Public API (all need `Authorization: Bearer <Firebase ID token>`):
@@ -97,7 +127,8 @@ class ApiState {
 ///   POST /api/messages {"to","text"}  -> {"message":{...}}
 /// Unauthenticated:
 ///   GET  /health                      -> {"status":"ok"}
-/// Test-only (403 unless [testMode]; enabled by E2E_TEST_MODE=1):
+/// Test-only (403 unless [testMode]; enabled by E2E_TEST_MODE=1, and
+/// loopback-only regardless — see [loopbackOnly]):
 ///   POST /test/seed {"email","profile","data"}  -> {"ok":true}
 ///   POST /test/reset/user {"email"}             -> {"ok":true}
 ///   POST /test/reset                                  -> {"ok":true}
@@ -231,5 +262,8 @@ Handler buildHandler(
         return res;
       };
 
-  return const Pipeline().addMiddleware(logRequests()).addHandler(route);
+  return const Pipeline()
+      .addMiddleware(logRequests())
+      .addMiddleware(loopbackOnly())
+      .addHandler(route);
 }

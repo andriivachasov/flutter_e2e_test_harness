@@ -8,6 +8,12 @@ import '../users/provisioner.dart';
 /// backend enables these endpoints only under E2E_TEST_MODE=1, which the
 /// orchestrator sets when it starts the backend.
 ///
+/// The enable flag is not an authentication factor: the recommended lock on
+/// this surface is that the test backend binds to loopback and rejects
+/// non-loopback callers (playbook 03 §3.2). A backend that cannot do that
+/// can require a shared secret instead — `backend.test_header` is sent with
+/// every request below, and never logged (issue #7).
+///
 ///   POST <seed_path>        {"email","profile","data"}
 ///   POST <reset_user_path>  {"email"}
 ///   POST <reset_path>       (run-level wipe)
@@ -40,6 +46,11 @@ class BackendTestApi {
       final req = await client.postUrl(Uri.parse('$baseUrl$path')).timeout(timeout);
       req.headers.contentType = ContentType.json;
       req.headers.set('X-E2E-Source', 'orchestrator');
+      // Optional second factor (issue #7). Unset by default: with no
+      // `backend.test_header` this loop adds nothing and the request is
+      // byte-identical to what the harness has always sent.
+      config.backendTestHeaders.headers
+          .forEach((name, value) => req.headers.set(name, value));
       req.write(jsonEncode(body));
       final res = await req.close().timeout(timeout);
       final text = await res.transform(utf8.decoder).join().timeout(timeout);

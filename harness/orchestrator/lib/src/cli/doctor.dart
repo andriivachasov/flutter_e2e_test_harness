@@ -109,6 +109,42 @@ Future<int> doctor(HarnessConfig config) async {
       fix: 'bash m1/step3_devices.sh creates it; or set devices.ios.name in '
           'e2e.yaml to a device from `xcrun simctl list devices available`',
     );
+    // Disabling SwiftPM (Patrol's iOS setup is CocoaPods-based) stops Flutter
+    // generating ios/Flutter/ephemeral/Packages/.packages/patrol-<version>/.
+    // A leftover local Swift package reference then makes xcodebuild fail to
+    // resolve dependencies before it builds anything.
+    await check(
+      'no stale patrol Swift package in Runner.xcodeproj',
+      required: false,
+      probe: () async {
+        final dir = config.resolve(config.appDir);
+        final pbxproj = File('$dir/ios/Runner.xcodeproj/project.pbxproj');
+        if (!pbxproj.existsSync()) return null;
+        final home = Platform.environment['HOME'];
+        final settingsFiles = [
+          File('$dir/pubspec.yaml'),
+          if (home != null) File('$home/.flutter_settings'),
+          if (home != null) File('$home/.config/flutter/settings'),
+        ];
+        final spmOff = settingsFiles.any((f) =>
+            f.existsSync() &&
+            RegExp(r'"?enable-swift-package-manager"?\s*:\s*false')
+                .hasMatch(f.readAsStringSync()));
+        if (!spmOff) return null;
+        final referenced = RegExp(
+          r'relativePath\s*=\s*"?[^";\n]*patrol-|productName\s*=\s*"?patrol"?\s*;',
+        ).hasMatch(pbxproj.readAsStringSync());
+        return referenced
+            ? 'Swift Package Manager is disabled but ios/Runner.xcodeproj '
+                'still references a patrol Swift package — xcodebuild will '
+                'fail with "Could not resolve package dependencies"'
+            : null;
+      },
+      fix: 'bash harness/tools/patrol_bootstrap.sh ${config.appDir} removes it '
+          '(step "ios: stale SwiftPM patrol package"), or run it alone: '
+          'cd ${config.appDir}/ios && ruby '
+          '<harness>/tools/ios_spm_cleanup.rb',
+    );
   } else {
     stdout.writeln('[warn] not macOS — iOS checks skipped, iOS tests will not run');
   }
@@ -236,6 +272,11 @@ Future<int> doctor(HarnessConfig config) async {
         fix: 'cd ${config.resolve(config.backendDir)} && dart pub get',
       );
     }
+    if (config.backendTestHeaders.isNotEmpty) {
+      // Names only — the values are secrets (issue #7).
+      stdout.writeln('[info] /test/* shared secret: '
+          '${config.backendTestHeaders.toRedactedJson()}');
+    }
   } else {
     stdout.writeln('[info] backend.command is empty: the harness starts no '
         'backend (seeding and account resets unavailable)');
@@ -258,6 +299,52 @@ Future<int> doctor(HarnessConfig config) async {
         '(that file is gitignored), or export the E2E_FIREBASE_* variables',
   );
 
+  // google-services.json / GoogleService-Info.plist are gitignored in most
+  // Flutter repos, so a fresh clone or worktree lacks them — and nothing
+  // notices until Gradle fails at :app:processDebugGoogleServices minutes
+  // into a run, buried in runs/<id>/<test>/<role>/test.log. Only apps whose
+  // build actually consumes the files are checked (the example app talks to
+  // the Auth REST API and ships none).
+  if (!config.firebase.isNone) {
+    bool mentions(List<String> paths, String needle) => paths.any((p) {
+          final f = File(p);
+          return f.existsSync() && f.readAsStringSync().contains(needle);
+        });
+    final androidUsesGoogleServices = mentions([
+      '$appDir/android/app/build.gradle',
+      '$appDir/android/app/build.gradle.kts',
+      '$appDir/android/build.gradle',
+      '$appDir/android/build.gradle.kts',
+      '$appDir/android/settings.gradle',
+      '$appDir/android/settings.gradle.kts',
+    ], 'google-services');
+    final iosUsesGoogleServices = Platform.isMacOS &&
+        mentions(['$appDir/ios/Runner.xcodeproj/project.pbxproj'],
+            'GoogleService-Info.plist');
+    if (androidUsesGoogleServices || iosUsesGoogleServices) {
+      await check(
+        'Firebase app config files',
+        probe: () async {
+          final missing = [
+            if (androidUsesGoogleServices &&
+                !File('$appDir/android/app/google-services.json').existsSync())
+              'android/app/google-services.json',
+            if (iosUsesGoogleServices &&
+                !File('$appDir/ios/Runner/GoogleService-Info.plist')
+                    .existsSync())
+              'ios/Runner/GoogleService-Info.plist',
+          ];
+          return missing.isEmpty
+              ? null
+              : 'missing ${missing.join(' and ')} in $appDir';
+        },
+        fix: 'cd $appDir && flutterfire configure (or copy the files from '
+            'another checkout/worktree — they are gitignored in most Flutter '
+            'repos, so a fresh clone has none). Without them the build dies '
+            'minutes into a run at :app:processDebugGoogleServices',
+      );
+    }
+  }
 
   if (!config.firebase.isNone &&
       !config.firebase.isEmulator &&

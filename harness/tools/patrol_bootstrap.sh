@@ -62,8 +62,14 @@ if [ "$SKIP_ANDROID" = 0 ]; then
   python3 "$HERE/gradle_patch.py" "$GRADLE" || fail "gradle patch"
   step "android: MainActivityTest.java"
   ATEST_DIR="android/app/src/androidTest/java/$(echo "$PKG" | tr . /)"
-  mkdir -p "$ATEST_DIR"
-  cat > "$ATEST_DIR/MainActivityTest.java" <<JAVA_EOF
+  # Detect a prior entry point by CONTENT, not filename: an existing Kotlin
+  # MainActivityTest.kt must not get a .java sibling (duplicate class).
+  ATEST_EXISTING=$(grep -rl PatrolJUnitRunner android/app/src/androidTest 2>/dev/null | head -1)
+  if [ -n "$ATEST_EXISTING" ]; then
+    echo "skipped (exists): $ATEST_EXISTING already uses PatrolJUnitRunner"
+  else
+    mkdir -p "$ATEST_DIR"
+    cat > "$ATEST_DIR/MainActivityTest.java" <<JAVA_EOF
 package $PKG;
 
 import androidx.test.platform.app.InstrumentationRegistry;
@@ -96,7 +102,8 @@ public class MainActivityTest {
     }
 }
 JAVA_EOF
-  echo "written $ATEST_DIR/MainActivityTest.java"
+    echo "written $ATEST_DIR/MainActivityTest.java"
+  fi
 fi
 
 if [ "$SKIP_IOS" = 0 ]; then
@@ -106,6 +113,17 @@ if [ "$SKIP_IOS" = 0 ]; then
     gem install --user-install xcodeproj || fail "gem install xcodeproj"
     export PATH="$PATH:$(ruby -e 'require "rubygems"; puts Gem.user_dir')/bin"
     ruby -e "require 'xcodeproj'" || fail "xcodeproj gem still not loadable"
+  fi
+  step "ios: stale SwiftPM patrol package"
+  # SPM off (above) stops Flutter generating
+  # ios/Flutter/ephemeral/Packages/.packages/patrol-<version>/, so a project
+  # that wired Patrol as a local Swift package can no longer resolve
+  # dependencies ("Could not resolve package dependencies"). Drop the
+  # reference before anything tries to build.
+  if [ "$(uname -s)" != "Darwin" ] || [ ! -d ios/Runner.xcodeproj ]; then
+    echo "xcodeproj: skipped (nothing to clean)"
+  else
+    (cd ios && ruby "$HERE/ios_spm_cleanup.rb") || fail "xcodeproj SPM cleanup"
   fi
   step "ios: Podfile"
   flutter pub get || fail "flutter pub get"
@@ -117,14 +135,22 @@ if [ "$SKIP_IOS" = 0 ]; then
   [ -f ios/Podfile ] || fail "ios/Podfile still missing"
   python3 "$HERE/podfile_patch.py" ios/Podfile || fail "podfile patch"
   step "ios: RunnerUITests"
-  mkdir -p ios/RunnerUITests
-  cat > ios/RunnerUITests/RunnerUITests.m <<'OBJC_EOF'
+  # Same content-based guard as Android: an existing .m or .swift UI-test
+  # bootstrap (and any hand-written notes in it) is left alone.
+  UITEST_EXISTING=$(grep -rlE 'PATROL_INTEGRATION_TEST_IOS_(RUNNER|MODULE)|class RunnerUITests' ios/RunnerUITests 2>/dev/null | head -1)
+  if [ -n "$UITEST_EXISTING" ]; then
+    echo "skipped (exists): $UITEST_EXISTING is already a Patrol UI-test entry point"
+  else
+    mkdir -p ios/RunnerUITests
+    cat > ios/RunnerUITests/RunnerUITests.m <<'OBJC_EOF'
 @import XCTest;
 @import patrol;
 @import ObjectiveC.runtime;
 
 PATROL_INTEGRATION_TEST_IOS_RUNNER(RunnerUITests)
 OBJC_EOF
+    echo "written ios/RunnerUITests/RunnerUITests.m"
+  fi
   (cd ios && ruby "$HERE/ios_target.rb" "$BUNDLE") || fail "xcodeproj target creation"
   step "ios: pod install"
   (cd ios && pod install) || fail "pod install"

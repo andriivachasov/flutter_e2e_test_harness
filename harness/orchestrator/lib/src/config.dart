@@ -18,11 +18,13 @@ class HarnessConfig {
     required this.androidGpu,
     required this.backendDir,
     required this.backendCommand,
+    required this.backendPortFlag,
     required this.backendHealthPath,
     required this.backendStartTimeout,
     required this.backendSeedPath,
     required this.backendResetUserPath,
     required this.backendResetPath,
+    required this.backendTestHeaders,
     required this.seedsDir,
     required this.appDir,
     required this.testsManifest,
@@ -65,6 +67,19 @@ class HarnessConfig {
   final String androidGpu;
   final String backendDir;
   final List<String> backendCommand;
+
+  /// Template for the argument(s) that tell the backend which port to
+  /// listen on, appended to [backendCommand]. Every `{port}` occurrence is
+  /// replaced with the run's port. Default `["--port", "{port}"]`; write
+  /// `"--server.port={port}"` for Spring Boot, `["-p", "{port}"]` for
+  /// Rails, `"127.0.0.1:{port}"` for a Django-style positional argument.
+  final List<String> backendPortFlag;
+
+  /// [backendPortFlag] with `{port}` substituted — what the backend
+  /// command is actually launched with.
+  List<String> backendPortArgs(int port) =>
+      [for (final part in backendPortFlag) part.replaceAll('{port}', '$port')];
+
   final String backendHealthPath;
   final Duration backendStartTimeout;
 
@@ -78,6 +93,12 @@ class HarnessConfig {
   final String backendSeedPath;
   final String backendResetUserPath;
   final String backendResetPath;
+
+  /// Optional shared secret sent with every `/test/*` request (issue #7).
+  /// Empty by default, so a setup that does not configure one sends exactly
+  /// the headers it always did. The values are secrets: only
+  /// [BackendTestHeaders.toRedactedJson] may reach a log or an artifact.
+  final BackendTestHeaders backendTestHeaders;
 
   /// Directory of named seed profiles (`<name>.json`), relative to root.
   final String seedsDir;
@@ -181,6 +202,32 @@ class HarnessConfig {
       return node.map((e) => e.toString()).toList();
     }
 
+    // `backend.port_flag`: a string or a list of strings, at least one of
+    // which carries the `{port}` placeholder. Default is `--port <n>`.
+    List<String> portFlag(Object? node) {
+      const defaultFlag = ['--port', '{port}'];
+      if (node == null) return defaultFlag;
+      final List<String> parts;
+      if (node is String) {
+        parts = [node];
+      } else if (node is List) {
+        parts = node.map((e) => e.toString()).toList();
+      } else {
+        throw ConfigError(
+          '"backend.port_flag" must be a string or a list of strings',
+        );
+      }
+      if (!parts.any((p) => p.contains('{port}'))) {
+        throw ConfigError(
+          '"backend.port_flag" must contain the {port} placeholder '
+          '(got $parts) — otherwise the backend would start on '
+          'the wrong port. Examples: ["--port", "{port}"] (default), '
+          '"--server.port={port}", "127.0.0.1:{port}"',
+        );
+      }
+      return parts;
+    }
+
     Duration seconds(Map<String, Object?> map, String key, int fallback) =>
         Duration(seconds: (map[key] as num?)?.toInt() ?? fallback);
 
@@ -200,12 +247,14 @@ class HarnessConfig {
       backendCommand: backend['command'] == null
           ? ['dart', 'run', 'bin/server.dart']
           : stringList(backend['command'], 'backend.command'),
+      backendPortFlag: portFlag(backend['port_flag']),
       backendHealthPath: (backend['health_path'] as String?) ?? '/health',
       backendStartTimeout: seconds(backend, 'start_timeout_seconds', 60),
       backendSeedPath: (backend['seed_path'] as String?) ?? '/test/seed',
       backendResetUserPath:
           (backend['reset_user_path'] as String?) ?? '/test/reset/user',
       backendResetPath: (backend['reset_path'] as String?) ?? '/test/reset',
+      backendTestHeaders: BackendTestHeaders.from(backend['test_header']),
       seedsDir: (seeds['dir'] as String?) ?? 'example/seeds',
       appDir: (app['dir'] as String?) ?? 'example/app',
       testsManifest:
@@ -273,6 +322,9 @@ List<String> _applyEnvOverrides(
     'E2E_FIREBASE_AUTH_EMULATOR_PORT': ['firebase', 'auth_emulator_port'],
     'E2E_POOL_PASSWORD': ['provisioner', 'pool_password'],
     'E2E_POOL_EMAIL_DOMAIN': ['provisioner', 'email_domain'],
+    // Optional shared secret for /test/* (issue #7); the value is a secret.
+    'E2E_BACKEND_TEST_HEADER': ['backend', 'test_header', 'name'],
+    'E2E_BACKEND_TEST_HEADER_VALUE': ['backend', 'test_header', 'value'],
     'E2E_ANDROID_AVD': ['devices', 'android', 'avd'],
     'E2E_ANDROID_GPU': ['devices', 'android', 'gpu'],
     'E2E_IOS_DEVICE': ['devices', 'ios', 'name'],
@@ -443,6 +495,89 @@ class ProvisionerConfig {
   final String poolPassword;
 
   bool get usesDefaultPassword => poolPassword == defaultPassword;
+}
+
+/// Optional shared secret for the `/test/*` surface (issue #7).
+///
+/// That surface deletes arbitrary user data and must work *before* the
+/// account exists, so it cannot be authenticated the normal way; the
+/// recommended lock is to bind the test backend to loopback (playbook 03
+/// §3.2). Integrators who want a second factor on top — or who cannot bind
+/// to loopback — configure a header the orchestrator sends with every
+/// `/test/*` request, and reject requests without it in the backend:
+///
+///     backend:
+///       test_header:                 # one header, name/value
+///         name: X-E2E-Test-Secret
+///         value: "shared-secret"
+///
+///     backend:
+///       test_header:                 # or several, as name: value
+///         X-E2E-Test-Secret: "shared-secret"
+///         X-Env: staging
+///
+/// Unset by default: with no `test_header` the orchestrator sends exactly
+/// the headers it always sent. Values are secrets — they belong in the
+/// gitignored `e2e.local.yaml` (or `E2E_BACKEND_TEST_HEADER` /
+/// `E2E_BACKEND_TEST_HEADER_VALUE`) — and only [toRedactedJson] may enter a
+/// log, a summary or any other artifact.
+class BackendTestHeaders {
+  const BackendTestHeaders(this.headers);
+
+  const BackendTestHeaders.none() : headers = const {};
+
+  /// Parses the `backend.test_header` node. Accepts a `{name:, value:}` pair
+  /// or a map of header names to values; `null` means unset.
+  factory BackendTestHeaders.from(Object? node) {
+    if (node == null) return const BackendTestHeaders.none();
+    if (node is! Map) {
+      throw ConfigError('"backend.test_header" must be a map — either '
+          '{name: <header>, value: <secret>} or {<header>: <secret>, ...}');
+    }
+    final map = node.map((k, v) => MapEntry('$k', v));
+    if (map.containsKey('name') || map.containsKey('value')) {
+      final name = '${map['name'] ?? ''}'.trim();
+      final value = '${map['value'] ?? ''}';
+      if (name.isEmpty || value.isEmpty) {
+        throw ConfigError('"backend.test_header" needs both "name" and '
+            '"value" (or drop the key entirely to send no extra header)');
+      }
+      return BackendTestHeaders({name: value});
+    }
+    final headers = <String, String>{};
+    for (final entry in map.entries) {
+      final name = entry.key.trim();
+      final value = '${entry.value ?? ''}';
+      if (name.isEmpty || value.isEmpty) {
+        throw ConfigError('"backend.test_header" entry "${entry.key}" has an '
+            'empty name or value');
+      }
+      headers[name] = value;
+    }
+    return BackendTestHeaders(headers);
+  }
+
+  /// Header name -> secret value. Never log or serialize this map.
+  final Map<String, String> headers;
+
+  bool get isEmpty => headers.isEmpty;
+  bool get isNotEmpty => headers.isNotEmpty;
+
+  /// Every configured value, for the redaction pass that scrubs subprocess
+  /// output (the executor already does this for `E2E_USER_PASSWORD` and
+  /// `E2E_FIREBASE_API_KEY`).
+  Iterable<String> get secretValues =>
+      headers.values.where((v) => v.isNotEmpty);
+
+  /// Safe for logs, summaries and artifacts: names are kept (they are not
+  /// secret and make a misconfiguration diagnosable), values become
+  /// presence flags.
+  Map<String, Object?> toRedactedJson() => {
+        for (final name in headers.keys) name: '<set>',
+      };
+
+  @override
+  String toString() => 'BackendTestHeaders(${toRedactedJson()})';
 }
 
 class ConfigError implements Exception {
