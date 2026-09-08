@@ -1,5 +1,17 @@
 # e2e_test_harness
 
+## Why
+
+Multi-user end-to-end tests — two devices, real accounts, a real backend — are
+where Flutter suites usually stop being reliable, and the setup is too fiddly
+to hand anyone as a checklist. This harness makes those runs repeatable (device
+pairing, pooled accounts, sync barriers, per-run artifacts) and ships the
+integration as a playbook an AI coding agent can work through without a human
+walking it step by step. It is built to be driven with Claude Code.
+
+**Status:** version 1.2.3 (`harness/VERSION`) · [MIT](LICENSE) · issues and
+pull requests are welcome.
+
 Flexible, reliable e2e test harness for Flutter apps (iOS + Android), designed
 to be integrated into existing apps by AI agents. `refined_requirements.md`
 holds the requirements and the decision log behind it. **To integrate the
