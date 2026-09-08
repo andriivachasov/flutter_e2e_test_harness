@@ -3,7 +3,7 @@
 ## 2.1 Copy the harness into the target repository
 
 The reference repository is
-[`git@github.com:andriivachasov/flutter_e2e_test_harness.git`](https://github.com/andriivachasov/flutter_e2e_test_harness)
+[`https://github.com/andriivachasov/flutter_e2e_test_harness.git`](https://github.com/andriivachasov/flutter_e2e_test_harness)
 (`<REF>` below). Clone it somewhere scratch — it is a *source* you copy
 files out of, not a dependency the target repo builds against, and it is
 never added as a submodule or remote of the target repo.
@@ -11,9 +11,9 @@ never added as a submodule or remote of the target repo.
 ```sh
 REF=/tmp/flutter_e2e_test_harness
 rm -rf "$REF"
-git clone --depth 1 git@github.com:andriivachasov/flutter_e2e_test_harness.git "$REF"
+git clone --depth 1 https://github.com/andriivachasov/flutter_e2e_test_harness.git "$REF"
 # pin to a known-good tag/commit instead of the branch tip if one exists:
-# git clone --depth 1 --branch <tag> git@github.com:andriivachasov/flutter_e2e_test_harness.git "$REF"
+# git clone --depth 1 --branch <tag> https://github.com/andriivachasov/flutter_e2e_test_harness.git "$REF"
 ```
 
 From `<REF>`, into the target repository root (`<TARGET>`):
@@ -61,7 +61,6 @@ Append (create the file if the repo has none):
 runs/
 e2e.local.yaml
 secrets/*
-!secrets/README.md
 *service-account*.json
 *firebase-adminsdk*.json
 <app dir>/patrol_test/test_bundle.dart

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# M1 step 2: iOS native Patrol setup (RunnerUITests target, Podfile, pods)
+# Setup step 2: iOS native Patrol setup (RunnerUITests target, Podfile, pods)
 # and an iOS test build as the gate. Idempotent. Logs to _e2e/logs/step2.log
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -45,7 +45,7 @@ fi
 [ -f ios/Podfile ] || fail "ios/Podfile still missing — check that pubspec.yaml has flutter.config.enable-swift-package-manager: false"
 
 step "podfile: RunnerUITests block"
-python3 "$ROOT/m1/podfile_patch.py" ios/Podfile || fail "podfile patch"
+python3 "$ROOT/harness/tools/podfile_patch.py" ios/Podfile || fail "podfile patch"
 
 step "RunnerUITests.m"
 mkdir -p ios/RunnerUITests
@@ -59,7 +59,8 @@ OBJC_EOF
 echo "RunnerUITests.m written"
 
 step "xcode project: RunnerUITests target + scheme"
-(cd ios && ruby "$ROOT/m1/ios_target.rb") || fail "xcodeproj target creation"
+(cd ios && ruby "$ROOT/harness/tools/ios_target.rb" com.example.e2eExampleApp) \
+  || fail "xcodeproj target creation"
 
 step "pod install"
 (cd ios && pod install) || fail "pod install"

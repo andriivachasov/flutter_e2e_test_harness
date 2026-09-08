@@ -36,9 +36,9 @@ example/app/lib/firebase_options.dart
     expect(ignored('firebase-service-account.json'), isTrue);
     expect(ignored('some/dir/my-service-account-key.json'), isTrue);
     expect(
-      ignored('firebase-spike-257111-firebase-adminsdk-61v0o-73b81c260c.json'),
+      ignored('my-project-1234-firebase-adminsdk-ab12c-3d4e5f6789.json'),
       isTrue,
-      reason: 'the real key filename must be covered',
+      reason: 'a real admin SDK key filename must be covered',
     );
     expect(ignored('harmless.json'), isFalse);
   });

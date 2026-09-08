@@ -35,7 +35,7 @@ Future<int> devices(HarnessConfig config) async {
       }
       if (udid == null) {
         stdout.writeln('ios      "${config.iosDeviceName}"  — NOT FOUND '
-            '(bash m1/step3_devices.sh creates it)');
+            '(bash setup/step3_devices.sh creates it)');
         missing++;
       } else {
         stdout.writeln('ios      "${config.iosDeviceName}"  $udid  '
@@ -59,7 +59,7 @@ Future<int> devices(HarnessConfig config) async {
         avds.stdout.split('\n').map((l) => l.trim()).contains(config.androidAvd);
     if (!exists) {
       stdout.writeln('android  "${config.androidAvd}"  — NOT FOUND '
-          '(bash m1/step3_devices.sh creates it)');
+          '(bash setup/step3_devices.sh creates it)');
       missing++;
     } else {
       var state = 'Shutdown';

@@ -28,6 +28,41 @@ section is how a required step goes missing.
 
 ---
 
+## 1.2.3 — 2026-09-08
+
+Repository hygiene ahead of publishing the reference repo. Nothing in the
+vendored harness behaves differently.
+
+### Changed
+
+- **The repository is MIT-licensed** (`LICENSE`) and the clone commands in
+  `README.md` and the playbook use HTTPS instead of SSH, so an anonymous
+  clone works.
+- **Internal development artifacts are no longer published**: the milestone
+  verification logs and notes (`_e2e/`), the milestone definition-of-done
+  scripts (`m2/`–`m4/`), the original brief and `implementation_plan.md` are
+  gitignored. `refined_requirements.md` remains the requirement and decision
+  source of truth.
+- **The milestone-named setup directory is now `setup/`**, and its three
+  patch helpers (`gradle_patch.py`, `podfile_patch.py`, `ios_target.rb`)
+  are gone — the scripts call the shipped `harness/tools/` copies, which is
+  where those tools are maintained. `ios_target.rb` there takes the app's
+  bundle id as an argument, which the stale duplicate had hardcoded.
+- **`secrets/` is removed.** Its README still documented
+  `firebase.service_account_key_path` and `E2E_FIREBASE_SERVICE_ACCOUNT`,
+  both of which D23 deleted; the harness reads no credentials at all. The
+  `secrets/*` and key-file ignore rules stay as a guard.
+- **`e2e-history/` ships empty.** The three committed audit entries were
+  recordings of the maintainer's machine (hostname included);
+  `HISTORY.md` is reset to its no-audits-yet rendering.
+- **`gitignore_test.dart` no longer names a real Firebase project** in its
+  admin-SDK key fixture.
+
+### Migration
+
+None.
+
+---
 ## 1.2.2 — 2026-08-27
 
 The two remaining review findings from 1.2.0 worth fixing before the release

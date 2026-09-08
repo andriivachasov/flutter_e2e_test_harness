@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# M1 step 3 preflight: ensure the devices in e2e.yaml exist —
+# Setup step 3 preflight: ensure the devices in e2e.yaml exist —
 # iOS simulator "iPhone 16" and Android AVD "e2e_pixel".
 # Idempotent. Logs to _e2e/logs/step3_devices.log
 set -uo pipefail

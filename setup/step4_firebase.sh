@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# M3 step 4: Firebase CLI for the Auth emulator. Idempotent — safe to re-run.
+# Setup step 4: Firebase CLI for the Auth emulator. Idempotent — safe to re-run.
 # Logs to _e2e/logs/step4_firebase.log
 #
 # Only the Auth emulator is used, which is implemented inside the CLI itself:
