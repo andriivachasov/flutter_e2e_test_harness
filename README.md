@@ -1,22 +1,22 @@
 # e2e_test_harness
 
 Flexible, reliable e2e test harness for Flutter apps (iOS + Android), designed
-to be integrated into existing apps by AI agents. See `refined_requirements.md`
-and `implementation_plan.md` for the full picture. **To integrate the harness
-into your own app, start at [`docs/README.md`](docs/README.md)** — the
+to be integrated into existing apps by AI agents. `refined_requirements.md`
+holds the requirements and the decision log behind it. **To integrate the
+harness into your own app, start at [`docs/README.md`](docs/README.md)** — the
 playbook (`docs/playbook/00-overview.md` → `08-definition-of-integrated.md`),
 patterns, ADRs and troubleshooting; `harness/tools/patrol_bootstrap.sh` and
 `harness/tools/check_integration.sh` do the mechanical parts.
 
-This repo (`git@github.com:andriivachasov/flutter_e2e_test_harness.git`) is
-the **reference repository**: a separate app repo doesn't depend on it at
+This repo ([`andriivachasov/flutter_e2e_test_harness`](https://github.com/andriivachasov/flutter_e2e_test_harness))
+is the **reference repository**: a separate app repo doesn't depend on it at
 build time — an agent clones it, copies `harness/` (and, for convenience,
 `docs/`) into the target repo, and follows the playbook from there. See
 [playbook/02-vendor-the-harness.md §2.1](docs/playbook/02-vendor-the-harness.md)
 for the exact clone/copy commands. Quick version:
 
 ```sh
-git clone --depth 1 git@github.com:andriivachasov/flutter_e2e_test_harness.git /tmp/flutter_e2e_test_harness
+git clone --depth 1 https://github.com/andriivachasov/flutter_e2e_test_harness.git /tmp/flutter_e2e_test_harness
 ```
 
 ## Bootstrap prompt
@@ -27,7 +27,7 @@ agent needs to start the playbook cold.
 
 ```
 Integrate the e2e test harness from
-git@github.com:andriivachasov/flutter_e2e_test_harness.git into this repo.
+https://github.com/andriivachasov/flutter_e2e_test_harness.git into this repo.
 
 1. Clone it to a scratch directory (e.g. /tmp/flutter_e2e_test_harness) —
    it is a reference repo you copy files out of, never a submodule,
@@ -64,7 +64,7 @@ version the app is on by itself.
 
 ```
 Update the vendored e2e test harness in this repo to the latest version of
-git@github.com:andriivachasov/flutter_e2e_test_harness.git.
+https://github.com/andriivachasov/flutter_e2e_test_harness.git.
 
 Clone it to a scratch directory and follow
 <clone>/docs/playbook/09-upgrading.md. What that file expands on:
@@ -107,10 +107,10 @@ version crossed, and what you changed for each.
 ## One-time setup (macOS)
 
 ```sh
-bash m1/step1_setup.sh      # toolchain, patrol_cli, platform folders, deps
-bash m1/step2_ios.sh        # Patrol iOS bootstrap
-bash m1/step3_devices.sh    # "iPhone 16" simulator + e2e_pixel AVD
-bash m1/step4_firebase.sh   # firebase CLI (Auth emulator; no Java needed)
+bash setup/step1_setup.sh      # toolchain, patrol_cli, platform folders, deps
+bash setup/step2_ios.sh        # Patrol iOS bootstrap
+bash setup/step3_devices.sh    # "iPhone 16" simulator + e2e_pixel AVD
+bash setup/step4_firebase.sh   # firebase CLI (Auth emulator; no Java needed)
 cd harness/orchestrator && dart run bin/e2e.dart doctor   # must be all-ok
 ```
 
@@ -133,7 +133,7 @@ Every run writes `runs/<run-id>/` with `summary.html` (humans),
 `firebase.log` and `orchestrator.log`. Exit codes: 0 all passed · 1 test
 failures · 2 infra/config error.
 
-## Users, seeding, resets (M3)
+## Users, seeding, resets
 
 Every test role gets a **pool account** before the body runs
 (`TestContext.user`): `<scope>-<role>@<email_domain>` with one shared
@@ -157,7 +157,7 @@ Resets: the app's on-device data is wiped before every role (R9a,
 `executor.reset_app_data`); tests can ask for a server-side account reset
 (`sync.resetAccount()`, R9b) or mid-test seeding (`sync.seed('profile')`).
 
-## Self-audit (M4)
+## Self-audit
 
 `e2e audit --runs N [--test|--tag]` runs the selection N times and writes
 `runs/audit_<id>/audit.json` + `audit.html`: per-test pass rate, p50/p95
@@ -173,11 +173,8 @@ also appends `e2e-history/<auditId>.json` (commit it) and regenerates
 regressions since the previous audit. `runs/` is gitignored and pruned to
 `run.keep_runs` runs / `run.keep_audits` audits.
 
-## Definition-of-done scripts
+## License
 
-```sh
-bash m2/dod_kill_backend.sh     # backend killed mid-test → exit 2, complete bundle
-bash m2/dod_doctor_no_xcode.sh  # doctor without Xcode → exact install steps
-bash m3/dod_both_modes.sh       # all R21 tests pass in emulator AND real mode
-bash m4/dod_audit.sh            # audit --runs 5: flaky test clustered + quarantined
-```
+[MIT](LICENSE). Issues and pull requests are welcome; the maintainer
+procedure for cutting a version is in
+[`docs/releasing.md`](docs/releasing.md).

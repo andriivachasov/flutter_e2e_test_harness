@@ -12,9 +12,10 @@ example/app/android/local.properties
 
 # --- Machine-local config and secrets -------------------------------------
 # NEVER commit these. e2e.local.yaml.template is the committed documentation.
+# The harness itself needs no credentials (D23); the secrets/ and key-file
+# rules stay as a guard for projects that keep other credentials locally.
 e2e.local.yaml
 secrets/*
-!secrets/README.md
 *service-account*.json
 *serviceaccount*.json
 *firebase-adminsdk*.json
@@ -32,3 +33,13 @@ example/app/ios/firebase_app_id_file.json
 # Generated per run by the orchestrator (PatrolExecutor.prepareBundle)
 example/app/patrol_test/test_bundle.dart
 firebase-debug.log
+
+# --- Internal development artifacts (kept locally, not published) ---------
+# Verification logs and notes from building the harness (machine paths),
+# the milestone definition-of-done scripts, and the pre-refinement brief.
+_e2e/
+m2/
+m3/
+m4/
+implementation_plan.md
+initial_requirements.txt

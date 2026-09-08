@@ -64,7 +64,7 @@ Future<int> doctor(HarnessConfig config) async {
     'firebase CLI (Auth emulator)',
     required: config.firebase.isEmulator,
     probe: () => haveCommand([config.firebase.cli, '--version']),
-    fix: 'bash m1/step4_firebase.sh (brew install firebase-cli); or set '
+    fix: 'bash setup/step4_firebase.sh (brew install firebase-cli); or set '
         'firebase.cli in e2e.yaml to the executable. Only the Auth '
         'emulator is used, so no Java runtime is needed',
   );
@@ -107,7 +107,7 @@ Future<int> doctor(HarnessConfig config) async {
             ? null
             : 'not in `simctl list devices available`';
       },
-      fix: 'bash m1/step3_devices.sh creates it; or set devices.ios.name in '
+      fix: 'bash setup/step3_devices.sh creates it; or set devices.ios.name in '
           'e2e.yaml to a device from `xcrun simctl list devices available`',
     );
     // Disabling SwiftPM (Patrol's iOS setup is CocoaPods-based) stops Flutter
@@ -170,7 +170,7 @@ Future<int> doctor(HarnessConfig config) async {
           ? null
           : 'not in `emulator -list-avds`';
     },
-    fix: 'bash m1/step3_devices.sh creates it (needs '
+    fix: 'bash setup/step3_devices.sh creates it (needs '
         'system-images;android-35;google_apis;arm64-v8a via sdkmanager); '
         'or set devices.android.avd in e2e.yaml to one of '
         '`emulator -list-avds`',
@@ -196,7 +196,7 @@ Future<int> doctor(HarnessConfig config) async {
     },
     fix: 'set hw.gpu.mode=host in '
         '~/.android/avd/${config.androidAvd}.avd/config.ini '
-        '(bash m1/step3_devices.sh does this); the harness also passes '
+        '(bash setup/step3_devices.sh does this); the harness also passes '
         '-gpu ${config.androidGpu} at boot',
   );
 

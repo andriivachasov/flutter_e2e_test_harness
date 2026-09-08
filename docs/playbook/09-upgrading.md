@@ -23,7 +23,7 @@ existed is 1.0.0 by construction.
 ```sh
 REF=/tmp/flutter_e2e_test_harness
 rm -rf "$REF"
-git clone --depth 1 git@github.com:andriivachasov/flutter_e2e_test_harness.git "$REF"
+git clone --depth 1 https://github.com/andriivachasov/flutter_e2e_test_harness.git "$REF"
 cat "$REF/harness/VERSION"     # the version you would be moving to
 sed -n '/^## /,$p' "$REF/CHANGELOG.md"
 ```

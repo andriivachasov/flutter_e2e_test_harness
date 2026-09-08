@@ -35,7 +35,7 @@ the emulator drops its adb connection during screenshots; measured 5 of 8
 runs failing before the fix. On a machine without a usable GPU driver set
 `devices.android.gpu: swangle` in `e2e.yaml` instead.
 
-The reference repository's `m1/step3_devices.sh` does the above
+The reference repository's `setup/step3_devices.sh` does the above
 idempotently; copy it if useful.
 
 ## Done when

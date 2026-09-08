@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# M1 step 1: toolchain, platform folders, Android Patrol setup, deps,
+# Setup step 1: toolchain, platform folders, Android Patrol setup, deps,
 # container-runnable tests, doctors. Idempotent — safe to re-run.
 # Logs to _e2e/logs/step1.log
 set -uo pipefail
@@ -40,7 +40,7 @@ step "android: gradle patrol config"
 GRADLE=android/app/build.gradle.kts
 [ -f "$GRADLE" ] || GRADLE=android/app/build.gradle
 [ -f "$GRADLE" ] || fail "no app-level gradle file found"
-python3 "$ROOT/m1/gradle_patch.py" "$GRADLE" || fail "gradle patch"
+python3 "$ROOT/harness/tools/gradle_patch.py" "$GRADLE" || fail "gradle patch"
 
 step "android: MainActivityTest"
 ATEST_DIR=android/app/src/androidTest/java/com/example/e2e_example_app

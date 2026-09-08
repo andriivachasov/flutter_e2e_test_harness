@@ -4,7 +4,7 @@
 
 ## Decision
 
-**One Auth emulator per run, started by the orchestrator through the `firebase` CLI with a per-run `firebase.json` whose ports (auth, hub, logging) come from the port allocator; only the Auth emulator is started.** Installed via `brew install firebase-cli` (`m1/step4_firebase.sh`)
+**One Auth emulator per run, started by the orchestrator through the `firebase` CLI with a per-run `firebase.json` whose ports (auth, hub, logging) come from the port allocator; only the Auth emulator is started.** Installed via `brew install firebase-cli` (`setup/step4_firebase.sh`)
 
 ## Rationale
 
