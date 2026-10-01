@@ -30,3 +30,5 @@ One file per decision, imported from `refined_requirements.md` §2 (the source o
 | [ADR-024](adr-024-artifact-retention-and-audit-memory.md) | Artifact retention and audit memory (2026-08-27) |
 | [ADR-025](adr-025-release-strategy-and-versioned-migrations.md) | Release strategy and versioned migrations (2026-08-27) |
 | [ADR-026](adr-026-fail-fast-across-roles.md) | Fail-fast across roles (2026-08-27) |
+| [ADR-027](adr-027-ios-dependencies-swift-package-manager-or-cocoap.md) | iOS dependencies: Swift Package Manager or CocoaPods (2026-10-01) |
+| [ADR-028](adr-028-one-patrol-test-build-at-a-time-per-app-dir.md) | One `patrol test` build at a time per app dir (2026-10-01) |

@@ -15,7 +15,7 @@ any failure. An integration is complete when the checker passes **and**
 | 1 | `e2e.yaml` at the repo root; `harness/orchestrator`, `harness/test_support` vendored | file presence |
 | 2 | `app.dir` exists; app depends on `patrol` and `e2e_test_support`; pubspec has a `patrol:` section | pubspec grep |
 | 3 | Android: `PatrolJUnitRunner` in gradle and in an `androidTest/` entry point (`.java` or `.kt`) | file/grep |
-| 4 | iOS: a `RunnerUITests` entry point (`.m` or `.swift`), `RunnerUITests` target in `Runner.xcodeproj`, Podfile block | file/grep |
+| 4 | iOS: a `RunnerUITests` entry point (`.m` or `.swift`), `RunnerUITests` target in `Runner.xcodeproj`, and its dependencies: a Podfile `RunnerUITests` block (CocoaPods) or `FlutterGeneratedPluginSwiftPackage` linked to it (Swift Package Manager) | file/grep |
 | 5 | Firebase config files present when the build consumes them: `android/app/google-services.json` (gradle applies `google-services`), `ios/Runner/GoogleService-Info.plist` (referenced by the xcodeproj, macOS only) | file presence |
 | 6 | App reads `E2E_*` dart-defines and sends `X-E2E-Test-Id` | `lib/` grep |
 | 7 | App uses stable widget keys | `lib/` grep for `Key(`/`ValueKey(`/`Semantics(` |

@@ -17,6 +17,7 @@ import '../sync/sync_server.dart';
 import '../tests/registry.dart';
 import '../users/provisioner.dart';
 import '../util/ports.dart';
+import 'build_gate.dart';
 
 /// What one `run` produced; consumed by `e2e audit`.
 class RunResult {
@@ -39,6 +40,9 @@ class Runner {
 
   final HarnessConfig config;
   final List<String> _warnings = [];
+
+  /// Lets one `patrol test` build at a time in the app dir (issue #14).
+  final BuildGate _buildGate = BuildGate();
   late final IOSink _log;
 
   /// Set once [run] has created its run directory.
@@ -566,13 +570,19 @@ class Runner {
           role.role: (await ports.next(), await ports.next()),
       };
       final roleStartedAt = DateTime.now();
-      final results = await Future.wait(spec.roles.map((role) {
+      final results = await Future.wait(spec.roles.map((role) async {
         final device = plan[role.role]!;
         final (testServerPort, appServerPort) = patrolPorts[role.role]!;
         final user = users[role.role];
+        // One build at a time in the app dir (issue #14, BuildGate).
+        if (_buildGate.busy) {
+          _info('${spec.name}/${role.role}: waiting for another build in the '
+              'app dir to reach its app launch');
+        }
+        final releaseBuild = await _buildGate.acquire();
         _info('launching ${spec.name} role=${role.role} on $device '
             '(patrol ports $testServerPort/$appServerPort)');
-        return executor.runRole(
+        final run = executor.runRole(
           spec: spec,
           role: role,
           device: device,
@@ -596,6 +606,14 @@ class Runner {
           secretDefines: const {'E2E_USER_PASSWORD', 'E2E_FIREBASE_API_KEY'},
           abort: abort,
         );
+        // The build is over once the app runs on the device; a role that
+        // ends without launching (build failure, abort) releases too.
+        final launched = captures[role.role]?.launched.future;
+        unawaited(Future.any<void>([
+          if (launched != null) launched,
+          run.then<void>((_) {}, onError: (Object _) {}),
+        ]).whenComplete(releaseBuild));
+        return run;
       }));
 
       final finishedAt = DateTime.now();

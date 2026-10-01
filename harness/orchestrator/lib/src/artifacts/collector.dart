@@ -28,6 +28,11 @@ class DeviceCapture {
   /// end of the build+install phase (R15). Null if it never launched.
   DateTime? appLaunchedAt;
 
+  /// Completes when the app under test is first seen running on the device
+  /// (the moment [appLaunchedAt] is set). The runner releases the build gate
+  /// then (issue #14).
+  final Completer<void> launched = Completer<void>();
+
   /// Next screenshot sequence number; 00 = start, 99 = end.
   int screenshotSeq = 1;
 
@@ -109,6 +114,7 @@ class ArtifactCollector {
       while (!capture.ended) {
         if (await capture.manager.isAppRunning(capture.device)) {
           capture.appLaunchedAt ??= DateTime.now();
+          if (!capture.launched.isCompleted) capture.launched.complete();
           if (!captureVideo) return null;
           return await capture.graphicsLock.run(() => capture.manager.startVideo(
                 capture.device,

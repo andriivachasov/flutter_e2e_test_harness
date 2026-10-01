@@ -19,19 +19,37 @@ cd -
 
 bash harness/tools/patrol_bootstrap.sh <app dir>        # both platforms
 bash harness/tools/patrol_bootstrap.sh <app dir> --skip-ios   # Linux / Android-only
+bash harness/tools/patrol_bootstrap.sh <app dir> --ios-deps=cocoapods   # force an iOS path
 ```
+
+**iOS dependency path** (D27). The script keeps the dependency manager the
+app already uses; `--ios-deps=auto|spm|cocoapods` overrides it (default
+`auto`):
+
+- **Swift Package Manager** (`spm`) — picked when the pubspec does not set
+  `enable-swift-package-manager: false` and `Runner.xcodeproj` already
+  contains `FlutterGeneratedPluginSwiftPackage` (Flutter's default for new
+  apps). Flutter's generated plugin package is linked to `RunnerUITests`, as
+  [Patrol's SPM setup](https://patrol.leancode.co/documentation) says. No
+  CocoaPods needed, unless the app also has a Podfile (then its
+  `RunnerUITests` block is added and `pod install` runs too).
+- **CocoaPods** (`cocoapods`) — every other app: Swift Package Manager is
+  turned off in the pubspec, the `RunnerUITests` block goes into
+  `ios/Podfile`, and `pod install` runs.
 
 What it does (all idempotent, safe to re-run):
 
 | Platform | Change |
 |---|---|
-| pubspec | adds the `patrol:` section (`app_name`, `android.package_name`, `ios.bundle_id`, read from the native projects) and `flutter.config.enable-swift-package-manager: false` (Patrol's iOS setup is CocoaPods-based) |
+| pubspec | adds the `patrol:` section (`app_name`, `android.package_name`, `ios.bundle_id`, read from the native projects); on the CocoaPods path also `flutter.config.enable-swift-package-manager: false` |
 | Android | `testInstrumentationRunner = "pl.leancode.patrol.PatrolJUnitRunner"`, `clearPackageData`, `ANDROIDX_TEST_ORCHESTRATOR` + `androidx.test:orchestrator` in `android/app/build.gradle(.kts)`; `MainActivityTest.java` in the app's package under `androidTest/`, **only if no entry point is there yet** |
-| iOS | `ios/RunnerUITests/RunnerUITests.m` (**only if no entry point is there yet**), a `RunnerUITests` UI-test target added to `Runner.xcodeproj` and to the shared `Runner` scheme's test action (via the `xcodeproj` gem, installed if missing), the `RunnerUITests` block in `ios/Podfile`, `pod install` |
-| iOS | removes any leftover **local Patrol Swift package** from `Runner.xcodeproj` (see below); prints `xcodeproj: skipped (nothing to clean)` when there is none |
+| iOS | `ios/RunnerUITests/RunnerUITests.m` (**only if no entry point is there yet**), a `RunnerUITests` UI-test target added to `Runner.xcodeproj` and to the shared `Runner` scheme's test action (via the `xcodeproj` gem, installed if missing) |
+| iOS, SPM | `FlutterGeneratedPluginSwiftPackage` linked to `RunnerUITests` (after a config-only `flutter build ios` if Flutter has not generated it yet) |
+| iOS, CocoaPods | the `RunnerUITests` block in `ios/Podfile`, `pod install`; removes any leftover **local Patrol Swift package** from `Runner.xcodeproj` (see below); prints `xcodeproj: skipped (nothing to clean)` when there is none |
 
 Preconditions: `android/` and `ios/` exist (`flutter create --platforms
-ios,android .` in the app dir if not), CocoaPods installed (iOS).
+ios,android .` in the app dir if not), CocoaPods installed (iOS, only on
+the CocoaPods path or when the app has a Podfile).
 
 ## Things that bite
 
@@ -39,10 +57,15 @@ ios,android .` in the app dir if not), CocoaPods installed (iOS).
   every run (one bundle for all tests, test selected at compile time by
   `E2E_TEST_ID`) and passed with `--no-generate-bundle`. Gitignore it; never
   edit it; never let `patrol test` regenerate it while shards run.
-- If the iOS project was created with Swift Package Manager, the script
+- `--ios-deps=cocoapods` on a Swift Package Manager project: the script
   runs a config-only build to regenerate the Podfile; if `ios/` contains
-  hand-written changes, review the diff.
-- **Patrol wired as a local Swift package.** Disabling SPM stops Flutter
+  hand-written changes, review the diff. Build steps that use SPM paths (for
+  example a Crashlytics symbol upload script) must be changed by hand.
+- **Builds are serialized** (D28): `e2e run` starts the next role's
+  `patrol test` only after the previous role's app has launched, because
+  concurrent builds in one app dir rewrite the same generated files (issue
+  #14). Do not run `patrol test` by hand in the app dir during a run.
+- **Patrol wired as a local Swift package** (CocoaPods path). Disabling SPM stops Flutter
   generating `ios/Flutter/ephemeral/Packages/.packages/patrol-<version>/`,
   so a project that previously wired Patrol through SPM points
   `Runner.xcodeproj` at a path that no longer exists and `xcodebuild` dies

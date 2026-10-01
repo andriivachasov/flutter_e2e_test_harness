@@ -23,8 +23,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   config:
-    # Patrol's documented iOS setup is CocoaPods-based; SPM opt-out is
-    # project-scoped. Revisit when Patrol documents pure-SPM setup (M2+).
+    # The example stays on CocoaPods so the harness's CocoaPods path keeps
+    # being exercised; apps on Swift Package Manager keep it (D27).
     enable-swift-package-manager: false
 
 patrol:

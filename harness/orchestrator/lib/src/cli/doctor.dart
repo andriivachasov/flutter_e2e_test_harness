@@ -90,10 +90,18 @@ Future<int> doctor(HarnessConfig config) async {
       stdout.writeln('[skip] iOS simulator "${config.iosDeviceName}" — '
           'needs Xcode (above)');
     }
+    // A Swift Package Manager app without a Podfile needs no CocoaPods.
+    final iosDir = '${config.resolve(config.appDir)}/ios';
+    final pbxproj = File('$iosDir/Runner.xcodeproj/project.pbxproj');
+    final spmOnly = !File('$iosDir/Podfile').existsSync() &&
+        pbxproj.existsSync() &&
+        pbxproj.readAsStringSync().contains('FlutterGeneratedPluginSwiftPackage');
     await check(
       'cocoapods',
+      required: !spmOnly,
       probe: () => haveCommand(['pod', '--version']),
-      fix: 'brew install cocoapods (Patrol\'s iOS setup is CocoaPods-based)',
+      fix: 'brew install cocoapods (needed by apps that use CocoaPods for '
+          'iOS dependencies)',
     );
     if (haveXcode) await check(
       'iOS simulator "${config.iosDeviceName}"',
@@ -110,7 +118,7 @@ Future<int> doctor(HarnessConfig config) async {
       fix: 'bash setup/step3_devices.sh creates it; or set devices.ios.name in '
           'e2e.yaml to a device from `xcrun simctl list devices available`',
     );
-    // Disabling SwiftPM (Patrol's iOS setup is CocoaPods-based) stops Flutter
+    // Disabling SwiftPM (the CocoaPods setup) stops Flutter
     // generating ios/Flutter/ephemeral/Packages/.packages/patrol-<version>/.
     // A leftover local Swift package reference then makes xcodebuild fail to
     // resolve dependencies before it builds anything.
