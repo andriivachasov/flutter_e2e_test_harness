@@ -16,8 +16,10 @@ flutter --version || fail "flutter not on PATH"
 dart --version || fail "dart not on PATH"
 
 step "patrol_cli"
-if ! command -v patrol >/dev/null; then
-  dart pub global activate patrol_cli || fail "activating patrol_cli"
+# patrol_cli must match the app's patrol (docs/playbook/02, "Known-good versions").
+PATROL_CLI_VERSION=4.8.0
+if ! command -v patrol >/dev/null || ! patrol --version 2>/dev/null | grep -q "v$PATROL_CLI_VERSION"; then
+  dart pub global activate patrol_cli "$PATROL_CLI_VERSION" || fail "activating patrol_cli $PATROL_CLI_VERSION"
 fi
 command -v patrol >/dev/null || fail "patrol still not on PATH (~/.pub-cache/bin)"
 patrol --version
