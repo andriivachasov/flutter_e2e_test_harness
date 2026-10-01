@@ -8,7 +8,7 @@ out of a clone and follows the playbook.
 Read before changing anything:
 
 - `README.md` — what this repo is, layout, how to run it
-- `refined_requirements.md` — requirements R1–R25 and the decision log D1–D26
+- `refined_requirements.md` — requirements R1–R25 and the decision log D1–D28
   (source of truth for both; ADRs under `docs/decisions/` are generated from
   §2 by `docs/decisions/regen.py` — edit the table there, regenerate here)
 - `docs/README.md` → `docs/playbook/00-overview.md` … `09-upgrading.md` — the

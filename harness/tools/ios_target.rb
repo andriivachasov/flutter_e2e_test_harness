@@ -1,10 +1,16 @@
 #!/usr/bin/env ruby
 # Adds the Patrol RunnerUITests target to Runner.xcodeproj and registers it
 # in the shared Runner scheme's test action. Idempotent. Run from ios/.
-#   ruby ios_target.rb <bundle_id>      (the app's PRODUCT_BUNDLE_IDENTIFIER)
+#   ruby ios_target.rb <bundle_id> [--spm]
+#     <bundle_id>  the app's PRODUCT_BUNDLE_IDENTIFIER
+#     --spm        Swift Package Manager app: also link Flutter's generated
+#                  plugin package (FlutterGeneratedPluginSwiftPackage) to
+#                  RunnerUITests, as Patrol's SPM setup requires.
 require 'xcodeproj'
 
-bundle_id = ARGV[0] or abort 'usage: ios_target.rb <app bundle id>'
+args = ARGV.reject { |a| a == '--spm' }
+spm = ARGV.include?('--spm')
+bundle_id = args[0] or abort 'usage: ios_target.rb <app bundle id> [--spm]'
 
 project_path = 'Runner.xcodeproj'
 project = Xcodeproj::Project.open(project_path)
@@ -50,6 +56,22 @@ end
 if changed
   project.save
   puts 'xcodeproj: RunnerUITests build settings updated'
+end
+
+if spm
+  package = 'FlutterGeneratedPluginSwiftPackage'
+  if target.package_product_dependencies.any? { |d| d.product_name == package }
+    puts "xcodeproj: #{package} already linked to RunnerUITests"
+  else
+    dependency = project.new(Xcodeproj::Project::Object::XCSwiftPackageProductDependency)
+    dependency.product_name = package
+    target.package_product_dependencies << dependency
+    build_file = project.new(Xcodeproj::Project::Object::PBXBuildFile)
+    build_file.product_ref = dependency
+    target.frameworks_build_phase.files << build_file
+    project.save
+    puts "xcodeproj: #{package} linked to RunnerUITests"
+  end
 end
 
 scheme_dir = Xcodeproj::XCScheme.shared_data_dir(project_path)

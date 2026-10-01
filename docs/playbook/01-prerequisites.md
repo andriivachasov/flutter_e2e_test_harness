@@ -8,7 +8,7 @@ message per item. Install what is missing; re-run doctor until all-ok.
 | Flutter + Dart | `flutter --version` | https://docs.flutter.dev/get-started |
 | patrol_cli 4.8.0 | `patrol --version` | `dart pub global activate patrol_cli 4.8.0` and add `~/.pub-cache/bin` to PATH |
 | Xcode (full app, not CLT) — iOS only | `xcrun simctl help` | App Store → `sudo xcode-select -s /Applications/Xcode.app/Contents/Developer && sudo xcodebuild -runFirstLaunch && xcodebuild -downloadPlatform iOS` |
-| CocoaPods — iOS only | `pod --version` | `brew install cocoapods` |
+| CocoaPods — iOS, only for apps on CocoaPods | `pod --version` | `brew install cocoapods` |
 | Android SDK + platform-tools + emulator | `adb version`, `$ANDROID_HOME/emulator/emulator -list-avds` | Android Studio, or `sdkmanager "platform-tools" "emulator" "system-images;android-35;google_apis;arm64-v8a"`. Only `adb` must be on PATH: the harness finds `emulator` under `$ANDROID_HOME` / `$ANDROID_SDK_ROOT` / `~/Library/Android/sdk`. |
 | Firebase CLI — only if `firebase.mode: emulator` | `firebase --version` | `brew install firebase-cli` (or `npm i -g firebase-tools`). No Java needed for the Auth emulator. |
 

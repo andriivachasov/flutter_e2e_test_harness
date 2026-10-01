@@ -28,6 +28,50 @@ section is how a required step goes missing.
 
 ---
 
+## 2.1.0 — 2026-10-01
+
+Swift Package Manager apps keep Swift Package Manager (D27, issue #21), and builds no
+longer race each other (D28, issue #14). Minor: CocoaPods integrations keep
+working untouched.
+
+### Added
+
+- **Swift Package Manager path in `patrol_bootstrap.sh`.** An app on Swift
+  Package Manager stays on it: the script links Flutter's generated plugin
+  package (`FlutterGeneratedPluginSwiftPackage`) to `RunnerUITests`, as
+  Patrol's SPM setup says, and needs no CocoaPods. New option
+  `--ios-deps=auto|spm|cocoapods` (default `auto`); unknown options now fail
+  with exit code 2. `ios_target.rb` takes `--spm` for the package link.
+- **Integration check and `e2e doctor` accept either path.** Criterion 4
+  passes with a Podfile `RunnerUITests` block or with the package linked to
+  `RunnerUITests`; the CocoaPods doctor check is optional for an app with no
+  Podfile that uses Swift Package Manager.
+
+### Fixed
+
+- **Concurrent builds in one app dir (issue #14).** `e2e run` starts a
+  role's `patrol test` only after the previous role's app has launched (or
+  the role ended), so two builds never rewrite the same generated files
+  (`Package.swift`, `Generated.xcconfig`). Tests still run concurrently once
+  their apps are up. A run with several roles waits a little longer at the
+  start; the log says "waiting for another build".
+
+### Migration
+
+None for apps on CocoaPods.
+
+Optional, for an app that was switched to CocoaPods only for the harness and
+wants Swift Package Manager back:
+
+1. Remove `enable-swift-package-manager: false` from the app's
+   `pubspec.yaml`, run `flutter pub get`, then
+   `flutter build ios --config-only --simulator` in the app dir.
+2. Remove `ios/Podfile`, `ios/Podfile.lock` and `ios/Pods/` if no other
+   dependency needs CocoaPods, then run
+   `bash harness/tools/patrol_bootstrap.sh <app dir> --ios-deps=spm`.
+3. `bash harness/tools/check_integration.sh` passes criterion 4 with
+   "FlutterGeneratedPluginSwiftPackage linked to RunnerUITests".
+
 ## 2.0.0 — 2026-10-01
 
 The harness pinned a `patrol` / `patrol_cli` pair that Patrol's own

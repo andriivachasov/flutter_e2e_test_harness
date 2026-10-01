@@ -35,7 +35,18 @@ if [ -n "$APP" ]; then
   grep -rq PatrolJUnitRunner "$APP/android/app/src/androidTest" 2>/dev/null && ok "android test entry point present (.java or .kt)" || bad "no androidTest entry point using PatrolJUnitRunner"
   grep -rqE 'PATROL_INTEGRATION_TEST_IOS_(RUNNER|MODULE)' "$APP/ios/RunnerUITests" 2>/dev/null && ok "iOS RunnerUITests entry point present (.m or .swift)" || bad "iOS RunnerUITests entry point missing"
   grep -q RunnerUITests "$APP/ios/Runner.xcodeproj/project.pbxproj" 2>/dev/null && ok "iOS RunnerUITests target in xcodeproj" || bad "iOS xcodeproj lacks RunnerUITests target"
-  grep -q "RunnerUITests" "$APP/ios/Podfile" 2>/dev/null && ok "Podfile has RunnerUITests block" || bad "Podfile lacks RunnerUITests block"
+  # iOS dependencies reach RunnerUITests through a Podfile block (CocoaPods)
+  # or through Flutter's generated plugin package linked to the target (Swift
+  # Package Manager): one package build file for Runner, one for
+  # RunnerUITests (counting the definitions, not the list entries).
+  SPM_LINKS=$(grep -cE "FlutterGeneratedPluginSwiftPackage in Frameworks \*/ = \{isa = PBXBuildFile" "$APP/ios/Runner.xcodeproj/project.pbxproj" 2>/dev/null)
+  if grep -q "RunnerUITests" "$APP/ios/Podfile" 2>/dev/null; then
+    ok "Podfile has RunnerUITests block (CocoaPods)"
+  elif [ "${SPM_LINKS:-0}" -ge 2 ]; then
+    ok "FlutterGeneratedPluginSwiftPackage linked to RunnerUITests (Swift Package Manager)"
+  else
+    bad "RunnerUITests gets no iOS dependencies: no Podfile RunnerUITests block and no FlutterGeneratedPluginSwiftPackage link (run patrol_bootstrap.sh)"
+  fi
   # Gitignored in most Flutter repos: a fresh clone/worktree builds for
   # minutes and then dies at :app:processDebugGoogleServices.
   # Flavored apps keep these outside the canonical path (android/app/src/<flavor>/,
