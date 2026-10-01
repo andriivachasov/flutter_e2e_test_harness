@@ -57,7 +57,7 @@ Future<int> doctor(HarnessConfig config) async {
   await check(
     'patrol_cli',
     probe: () => haveCommand(['patrol', '--version']),
-    fix: 'dart pub global activate patrol_cli '
+    fix: 'dart pub global activate patrol_cli 4.8.0 '
         '(and add ~/.pub-cache/bin to PATH)',
   );
   if (!config.firebase.isNone) await check(

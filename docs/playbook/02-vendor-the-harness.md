@@ -135,9 +135,12 @@ provisioner:
 
 Notes:
 - Known-good versions (what the reference repo pins): Flutter 3.44,
-  `patrol` ^4.9 in the app, `patrol_cli` 4.6.x on PATH. `pub add` may
-  resolve a newer minor; that is fine as long as `patrol_cli` and `patrol`
-  are both 4.x.
+  `patrol` **4.10.0** in the app and `patrol_cli` **4.8.0** on PATH. Pin both
+  exactly: `patrol` and `patrol_cli` must be a pair listed in Patrol's
+  [compatibility table](https://patrol.leancode.co/documentation/compatibility-table),
+  and the orchestrator's test bundle (`patrol_executor.dart`) mirrors the
+  template of exactly this `patrol_cli` version. Change the pair only
+  together with a harness version that supports it.
 - The harness appends `backend.port_flag` (default `["--port", "{port}"]`,
   a template — `"--server.port={port}"`, `["-p", "{port}"]`, … see step 03)
   to `backend.command` and expects `GET <health_path>` to answer 200 (step

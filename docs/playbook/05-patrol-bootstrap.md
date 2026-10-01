@@ -6,13 +6,13 @@ script does all of it; run it from the target repository root:
 ```sh
 # app dependencies first
 cd <app dir>
-flutter pub add dev:patrol dev:integration_test:'{"sdk":"flutter"}' \
+flutter pub add dev:patrol:4.10.0 dev:integration_test:'{"sdk":"flutter"}' \
   dev:e2e_test_support:'{"path":"<relative path to>/harness/test_support"}'
 # (if pub add refuses the sdk/path forms, edit pubspec.yaml by hand:)
 #   dev_dependencies:
 #     flutter_test: {sdk: flutter}
 #     integration_test: {sdk: flutter}
-#     patrol: ^4.1.0
+#     patrol: 4.10.0
 #     e2e_test_support: {path: ../harness/test_support}   # path relative to the app dir
 flutter pub get
 cd -

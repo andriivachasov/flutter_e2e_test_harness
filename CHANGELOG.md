@@ -28,6 +28,40 @@ section is how a required step goes missing.
 
 ---
 
+## 2.0.0 — 2026-10-01
+
+The harness pinned a `patrol` / `patrol_cli` pair that Patrol's own
+compatibility table does not list (`patrol` 4.9.0 with `patrol_cli` 4.6.1),
+and the playbook said any 4.x pair was fine (issue #17). It now pins one
+listed pair, `patrol` 4.10.0 with `patrol_cli` 4.8.0, and the orchestrator's
+test bundle follows `patrol_cli` 4.8.0. Major because the new bundle does not
+compile with `patrol` older than 4.9.0, so an integrated app must update its
+`patrol` dependency.
+
+### Changed
+
+- **Pinned Patrol pair: `patrol` 4.10.0 in the app, `patrol_cli` 4.8.0 on
+  PATH.** The example app pins `patrol: 4.10.0` exactly; playbook steps 00,
+  01, 02 and 05, `setup/step1_setup.sh`, `harness/tools/patrol_bootstrap.sh`
+  and the `e2e doctor` fix hint name the exact pair, and the playbook links
+  Patrol's compatibility table. Both scripts reactivate `patrol_cli` 4.8.0
+  when another version is on PATH.
+- **The test bundle mirrors `patrol_cli` 4.8.0's template** (runtime test
+  discovery; the opt-in build-time discovery branch is left out). It calls
+  `PatrolRuntimePorts.ensureLoaded()` before starting the app service: on
+  iOS, Patrol 4.9+ passes each run's server ports through XCTest's launch
+  environment, and without this call the app used the default ports, so
+  concurrent iOS runs could collide.
+
+### Migration
+
+1. In the app's `pubspec.yaml`, set the dev dependency `patrol: 4.10.0`
+   (exact), then `flutter pub get`; on iOS also `pod install` in `ios/`.
+2. Install the matching CLI: `dart pub global activate patrol_cli 4.8.0`.
+3. Copy the new `harness/` tree as usual (playbook 09); no `e2e.yaml` key,
+   manifest key or backend contract changed.
+
+---
 ## 1.2.3 — 2026-09-08
 
 Repository hygiene ahead of publishing the reference repo. Nothing in the

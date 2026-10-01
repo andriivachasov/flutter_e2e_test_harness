@@ -22,7 +22,11 @@ cd "$APP" || fail "app dir $APP not found"
 [ -f pubspec.yaml ] || fail "$APP has no pubspec.yaml"
 
 step "patrol_cli"
-command -v patrol >/dev/null || dart pub global activate patrol_cli || fail "activating patrol_cli"
+# patrol_cli must match the app's patrol (docs/playbook/02, "Known-good versions").
+PATROL_CLI_VERSION=4.8.0
+if ! command -v patrol >/dev/null || ! patrol --version 2>/dev/null | grep -q "v$PATROL_CLI_VERSION"; then
+  dart pub global activate patrol_cli "$PATROL_CLI_VERSION" || fail "activating patrol_cli $PATROL_CLI_VERSION"
+fi
 patrol --version
 
 step "identify the app"

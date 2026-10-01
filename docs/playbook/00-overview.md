@@ -96,7 +96,7 @@ as a migration, not a bolt-on:
 
 ## Prerequisite knowledge you can assume
 
-- Flutter ≥ 3.x with Dart 3, Patrol 4.x (`patrol_cli` on PATH).
+- Flutter ≥ 3.x with Dart 3; `patrol` 4.10.0 in the app and `patrol_cli` 4.8.0 on PATH (an exact pair, see step 02).
 - Tests are `integration_test/*.dart` files using `patrolTest`.
 - The harness never asks you to install Node or Java: the Firebase CLI's
   Auth emulator is self-contained.

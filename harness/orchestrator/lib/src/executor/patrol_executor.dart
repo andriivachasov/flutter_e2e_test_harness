@@ -44,7 +44,9 @@ class PatrolExecutor {
   /// shard already gets, so each build still contains exactly one test.
   /// Without the define (a manual `patrol test`), every test is registered.
   ///
-  /// The body mirrors patrol_cli 4.6.1's TestBundler template (pinned).
+  /// The body mirrors patrol_cli 4.8.0's TestBundler template (pinned, with
+  /// patrol 4.10.0), runtime test discovery only: the opt-in build-time
+  /// discovery branch of that template is left out.
   void prepareBundle(List<TestSpec> allTests) {
     final appDir = config.resolve(config.appDir);
     // patrol_cli writes and compiles `<patrol.test_directory>/test_bundle.dart`
@@ -76,6 +78,7 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
 import 'package:patrol/src/platform/contracts/contracts.dart';
+import 'package:patrol/src/platform/mobile/patrol_runtime_ports.dart';
 import 'package:test_api/src/backend/invoker.dart';
 
 // START: GENERATED TEST IMPORTS
@@ -110,6 +113,10 @@ $groups// END: GENERATED TEST GROUPS
   final dartTestGroup = await testExplorationCompleter.future;
   final appService = PatrolAppService(topLevelDartTestGroup: dartTestGroup);
   binding.patrolAppService = appService;
+  // On iOS the native runner passes this run's server ports through XCTest's
+  // launch environment; without this call the app falls back to the default
+  // ports and concurrent runs collide (patrol >= 4.9).
+  await PatrolRuntimePorts.ensureLoaded();
   await runAppService(appService);
   await platformAutomator.markPatrolAppServiceReady();
   await appService.testExecutionCompleted;
